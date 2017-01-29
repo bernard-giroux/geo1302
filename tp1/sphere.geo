@@ -1,15 +1,16 @@
 
-lc = 0.4;
 rad = 1.0;
+z0 = 200.0
+lc = rad*0.4;
 
 // Sphere
-Point(57) = {0.0,0.0,0.0,lc};
-Point(58) = {rad,0.0,0.0,lc};
-Point(59) = {0,rad,0.0,lc};
-Point(60) = {-rad,0,0.0,lc};
-Point(61) = {0,-rad,0.0,lc};
-Point(62) = {0,0,-rad,lc};
-Point(63) = {0,0,rad,lc};
+Point(57) = {0.0,0.0,z0,lc};
+Point(58) = {rad,0.0,z0,lc};
+Point(59) = {0,rad,z0,lc};
+Point(60) = {-rad,0,z0,lc};
+Point(61) = {0,-rad,z0,lc};
+Point(62) = {0,0,z0-rad,lc};
+Point(63) = {0,0,z0+rad,lc};
 
 Circle(108) = {58,57,59};
 Circle(109) = {59,57,60};

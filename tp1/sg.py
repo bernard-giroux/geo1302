@@ -75,8 +75,12 @@ def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
     Input
         rho: densité                                     [ g/cm**3 ]
         face: indices des noeuds formant les faces
+              1 ligne par face, la 1re valeur est le nbre de
+              noeuds par face et les valeurs suivantes sont
+              les indices
         corner: coordonnées des noeuds                         [ m ]
         x1,y1,z1: coordonnées des points d'observation         [ m ]
+                    array 2D
         checkNormal: vérifie que les normales aux faces
                      pointent vers l'extérieur du polyèdre
 

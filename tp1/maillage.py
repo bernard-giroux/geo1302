@@ -108,9 +108,60 @@ class TriSurf:
 
         return V/6.0
 
+    def toVTK(self, fichier):
+        """
+        Sauvegarde en format VTK
+
+        INPUT
+            fichier: nom du fichier de sortie (string)
+        """
+        if len(self.p) == 0 or len(self.t) == 0:
+            print("Erreur: maillage non défini")
+            sys.exit(1)
+
+        if fichier[-4:] != '.vtu':
+            fichier = fichier + '.vtu'
+            print(fichier)
+
+        try:
+            with open(fichier, 'wt') as f:
+                f.write('<?xml version="1.0"?>\n')
+                f.write('<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian">\n')
+                f.write('  <UnstructuredGrid>\n')
+                f.write('    <Piece NumberOfPoints="{0:d}" NumberOfCells="{1:d}">\n'.format(self.p.shape[0], self.t.shape[0]))
+                f.write('      <Points>\n')
+                f.write('        <DataArray type="Float32" NumberOfComponents="3" format="ascii">\n')
+                for n in np.arange(self.p.shape[0]):
+                    f.write('          {0:f} {1:f} {2:f}\n'.format(self.p[n,0], self.p[n,1], self.p[n,2]))
+                f.write('        </DataArray>\n')
+                f.write('      </Points>\n')
+                f.write('      <Cells>\n')
+                f.write('        <DataArray type="Int32" Name="connectivity" format="ascii">\n')
+                for n in np.arange(self.t.shape[0]):
+                    f.write('          {0:d} {1:d} {2:d}\n'.format(self.t[n,0], self.t[n,1], self.t[n,2]))
+                f.write('        </DataArray>\n')
+                f.write('        <DataArray type="Int32" Name="offsets" format="ascii">\n')
+                off = 3
+                for n in np.arange(self.t.shape[0]):
+                    f.write('          {0:d}\n'.format(off))
+                    off += 3
+                f.write('        </DataArray>\n')
+                f.write('        <DataArray type="UInt8" Name="types" format="ascii">\n')
+                for n in np.arange(self.t.shape[0]):
+                    f.write('          5\n')
+                f.write('        </DataArray>\n')
+                f.write('      </Cells>\n')
+                f.write('    </Piece>\n')
+                f.write('  </UnstructuredGrid>\n')
+                f.write('</VTKFile>\n')
+        except IOError:
+            print("Erreur: impossible d'ouvrir le fichier "+fichier)
+            sys.exit(1)
+
 
 if __name__ == '__main__':
     m = TriSurf()
     m.chargerMsh('/Users/giroux/Cours/modelisation/gmsh/sphere.msh')
     print(m.p.shape)
     print(m.t.shape)
+    m.toVTK('sphere')

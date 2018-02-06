@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import h5py
 
 def prd(rho, x0, x, y, z):
     """
@@ -82,7 +83,51 @@ class Grille:
                     for n in np.arange(N):
                         G[n,m] = prd(
         return G
-            
+
+    def toXdmf(self, field, fieldname, filename):
+        """
+        Save a field in xdmf format (http://www.xdmf.org/index.php/Main_Page)
+
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+            fieldname: name to be assinged to the data (string)
+            filename: name of xdmf file (string)
+        """
+        ox = self.x[0]# + self.dx/2
+        oy = self.y[0]# + self.dy/2
+        oz = self.z[0]# + self.dz/2
+
+        f = open(filename+'.xmf','w')
+
+        f.write('<?xml version="1.0" ?>\n')
+        f.write('<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>\n')
+        f.write('<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">\n')
+        f.write(' <Domain>\n')
+        f.write('   <Grid Name="Structured Grid" GridType="Uniform">\n')
+        f.write('     <Topology TopologyType="3DCORECTMesh" NumberOfElements="'+
+        repr(self.nz+1)+' '+repr(self.ny+1)+' '+repr(self.nx+1)+'"/>\n')
+        f.write('     <Geometry GeometryType="ORIGIN_DXDYDZ">\n')
+        f.write('       <DataItem Dimensions="3 " NumberType="Float" Precision="4" Format="XML">\n')
+        f.write('          '+repr(oz)+' '+repr(oy)+' '+repr(ox)+'\n')
+        f.write('       </DataItem>\n')
+        f.write('       <DataItem Dimensions="3 " NumberType="Float" Precision="4" Format="XML">\n')
+        f.write('        '+repr(self.dz)+' '+repr(self.dy)+' '+repr(self.dx)+'\n')
+        f.write('       </DataItem>\n')
+        f.write('     </Geometry>\n')
+        f.write('     <Attribute Name="'+fieldname+'" AttributeType="Scalar" Center="Cell">\n')
+        f.write('       <DataItem Dimensions="'+repr(self.nz)+' '+repr(self.ny)+' '+repr(self.nx)+
+        '" NumberType="Float" Precision="4" Format="HDF">'+filename+'.h5:/'+fieldname+'</DataItem>\n')
+        f.write('     </Attribute>\n')
+        f.write('   </Grid>\n')
+        f.write(' </Domain>\n')
+        f.write('</Xdmf>\n')
+
+        f.close()
+
+        h5f = h5py.File(filename+'.h5', 'w')
+        h5f.create_dataset(fieldname, data=field.reshape((self.nz,self.ny,self.nx)).astype(np.float32))
+        h5f.close()
+
     def __update_n(self):
         if '_x' in self.__dict__ and '_y' in self.__dict__ and '_z' in self.__dict__:
             self.nx = len(self._x)-1             # nombre de prismes selon x
@@ -199,12 +244,14 @@ if __name__ == '__main__':
     tic = time.time()
     G = g.prd_G(x0)
     t_G = time.time() - tic
-    
+
     rho = np.zeros((g.nc,))
     rho[ g.ind(8,10,5) ] = 1.0
-    
+
     tic = time.time()
     gz = np.dot(G, rho)
     t_mult = time.time() - tic
-    
-    print(t_G, t_mult)
+
+    print('{0:e}  {1:e}'.format(t_G, t_mult))
+
+    g.toXdmf(self, rho, 'rho', 'grille')

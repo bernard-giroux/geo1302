@@ -121,7 +121,6 @@ class TriSurf:
 
         if fichier[-4:] != '.vtu':
             fichier = fichier + '.vtu'
-            print(fichier)
 
         try:
             with open(fichier, 'wt') as f:

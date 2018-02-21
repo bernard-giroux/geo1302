@@ -9,6 +9,7 @@ import time
 import numpy as np
 from scipy.interpolate import interpn
 import matplotlib.pyplot as plt
+from numba import jit
 
 from utils import nargout
 
@@ -139,6 +140,63 @@ class GrilleFDTD:
 
         self.m = dt / self.dx * mu2
 
+    @jit
+    def propage0(self, src, t, showPlot=False):
+
+        nstep = 1 + int(t/self.dt)
+
+        tau_xx = np.zeros((self.nz, self.nx))
+        tau_zz = np.zeros((self.nz, self.nx))
+        tau_xz = np.zeros((self.nz, self.nx))
+        v_x = np.zeros((self.nz, self.nx))
+        v_z = np.zeros((self.nz, self.nx))
+
+        if showPlot:
+            fig, (ax1, ax2) = plt.subplots(ncols=2)
+            stitle = fig.suptitle('')
+            plt.show(block=False)
+
+        for m in range(nstep):
+
+            # applique la source au noeud (i+1/2,j)
+            tau_zz[src.j, src.i] += src(m)
+            tau_xx[src.j, src.i] += src(m)
+
+            for j in np.arange(1, self.nz):
+                for i in np.arange(1, self.nx):
+                    v_x[j,i] = v_x[j,i] + self.b1[j,i] * (
+                        (tau_xx[j,i]-tau_xx[j,i-1]) +
+                        (tau_xz[j,i]-tau_xz[j-1,i]))
+
+            for j in np.arange(0, self.nz-1):
+                for i in np.arange(0, self.nx-1):
+                    v_z[j,i] = v_z[j,i] + self.b2[j,i] * (
+                        (tau_xz[j,i+1]-tau_xz[j,i]) +
+                        (tau_zz[j+1,i]-tau_zz[j,i]))
+
+            for j in np.arange(1, self.nz):
+                for i in np.arange(0, self.nx-1):
+                    tau_xx[j,i] += self.lm[j,i] * (v_x[j,i+1]-v_x[j,i]) + \
+                        self.l[j,i] * (v_z[j,i]-v_z[j-1,i])
+
+                    tau_zz[j,i] += self.lm[j,i] * (v_z[j,i]-v_z[j-1,i]) + \
+                        self.l[j,i] * (v_x[j,i+1]-v_x[j,i])
+
+            for j in np.arange(0, self.nz-1):
+                for i in np.arange(1, self.nx):
+                    tau_xz[j,i] += self.m[j,i] * (
+                        v_x[j+1,i]-v_x[j,i] +
+                        v_z[j,i]-v_z[j,i-1])
+
+            if showPlot and np.remainder(m, 20) == 0:
+                ax1.clear()
+                ax1.imshow(v_x)
+                ax2.clear()
+                ax2.imshow(v_z)
+                fig.canvas.draw()
+                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
+                plt.pause(0.01)
+
     def propage(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
@@ -246,88 +304,94 @@ class Ricker(Source):
 
 if __name__ == '__main__':
 
-    dx = 50.0
-    x = np.arange(0.0, 200.1, dx)
-    z = np.arange(0.0, 150.1, dx)
+    checkProp = False
+    timeForLoop = True
 
-    g = GrilleFDTD(x, z)
+    if checkProp:
+        dx = 50.0
+        x = np.arange(0.0, 200.1, dx)
+        z = np.arange(0.0, 150.1, dx)
 
-    Vp = 4000.0 + np.zeros((z.size, x.size))
-    Vp[1, 1] = 5000.0
-    Vp[1, 2] = 3000.0
-    sigma = 0.25              # coeff Poisson
-    Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
-    rho = 2670.0 + np.zeros(Vp.shape)
-    rho[1, 1] = 2500.0
-    rho[2, 2] = 2700.0
-    dt = 0.006
+        g = GrilleFDTD(x, z)
 
-    g.defProp(Vp, Vs, rho, dt)
+        Vp = 4000.0 + np.zeros((z.size, x.size))
+        Vp[1, 1] = 5000.0
+        Vp[1, 2] = 3000.0
+        sigma = 0.25              # coeff Poisson
+        Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
+        rho = 2670.0 + np.zeros(Vp.shape)
+        rho[1, 1] = 2500.0
+        rho[2, 2] = 2700.0
+        dt = 0.006
 
-    plt.figure()
-    plt.imshow(g.b1)
-    plt.title('b1')
-    plt.gca().set_aspect('equal')
-    plt.gca().autoscale(tight=True)
-    plt.colorbar()
-    plt.show()
+        g.defProp(Vp, Vs, rho, dt)
 
-    plt.figure()
-    plt.imshow(g.b2)
-    plt.title('b2')
-    plt.gca().set_aspect('equal')
-    plt.gca().autoscale(tight=True)
-    plt.colorbar()
-    plt.show()
+        plt.figure()
+        plt.imshow(g.b1)
+        plt.title('b1')
+        plt.gca().set_aspect('equal')
+        plt.gca().autoscale(tight=True)
+        plt.colorbar()
+        plt.show()
 
-    plt.figure()
-    plt.imshow(g.lm)
-    plt.title('lm')
-    plt.gca().set_aspect('equal')
-    plt.gca().autoscale(tight=True)
-    plt.colorbar()
-    plt.show()
+        plt.figure()
+        plt.imshow(g.b2)
+        plt.title('b2')
+        plt.gca().set_aspect('equal')
+        plt.gca().autoscale(tight=True)
+        plt.colorbar()
+        plt.show()
 
-    plt.figure()
-    plt.imshow(g.l)
-    plt.title('l')
-    plt.gca().set_aspect('equal')
-    plt.gca().autoscale(tight=True)
-    plt.colorbar()
-    plt.show()
+        plt.figure()
+        plt.imshow(g.lm)
+        plt.title('lm')
+        plt.gca().set_aspect('equal')
+        plt.gca().autoscale(tight=True)
+        plt.colorbar()
+        plt.show()
 
-    plt.figure()
-    plt.imshow(g.m)
-    plt.title('m')
-    plt.gca().set_aspect('equal')
-    plt.gca().autoscale(tight=True)
-    plt.colorbar()
-    plt.show()
+        plt.figure()
+        plt.imshow(g.l)
+        plt.title('l')
+        plt.gca().set_aspect('equal')
+        plt.gca().autoscale(tight=True)
+        plt.colorbar()
+        plt.show()
 
+        plt.figure()
+        plt.imshow(g.m)
+        plt.title('m')
+        plt.gca().set_aspect('equal')
+        plt.gca().autoscale(tight=True)
+        plt.colorbar()
+        plt.show()
 
+    if timeForLoop:
+        dx = 50.0
+        x = np.arange(0.0, 20000.1, dx)
+        z = np.arange(0.0, 15000.1, dx)
 
-    dx = 50.0
-    x = np.arange(0.0, 20000.1, dx)
-    z = np.arange(0.0, 15000.1, dx)
+        g = GrilleFDTD(x, z)
 
-    g = GrilleFDTD(x, z)
+        Vp = 4000.0 + np.zeros((z.size, x.size))
+        Vp[200:,:] = 5000.0
+        sigma = 0.25              # coeff Poisson
+        Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
+        rho = 2670.0 + np.zeros(Vp.shape)
+        rho[200:,:] = 2700.0
+        dt = 0.006
 
-    Vp = 4000.0 + np.zeros((z.size, x.size))
-    Vp[200:,:] = 5000.0
-    sigma = 0.25              # coeff Poisson
-    Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
-    rho = 2670.0 + np.zeros(Vp.shape)
-    rho[200:,:] = 2700.0
-    dt = 0.006
+        g.defProp(Vp, Vs, rho, dt)
 
-    g.defProp(Vp, Vs, rho, dt)
-    plt.imshow(g.m)
-    plt.colorbar()
-    plt.show()
+        src = Ricker(200, 150, 5, dt)
 
-    src = Ricker(200, 150, 5, dt)
-    src.plot()
+        t = 0.5
 
-    t = 4.0
-
-    g.propage(src, t, True)
+        tic = time.time()
+        g.propage0(src, t, True)
+        t0 = time.time() - tic
+        print(t0)
+        tic = time.time()
+        g.propage(src, t, True)
+        t = time.time() - tic
+        print(t)

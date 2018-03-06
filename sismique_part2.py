@@ -320,6 +320,8 @@ class GrilleFDTD:
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
+            im1 = ax1.imshow(v_x)
+            im2 = ax2.imshow(v_z)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
@@ -356,10 +358,10 @@ class GrilleFDTD:
                         v_z[j,i]-v_z[j,i-1])
 
             if showPlot and np.remainder(m, 20) == 0:
-                ax1.clear()
-                ax1.imshow(v_x)
-                ax2.clear()
-                ax2.imshow(v_z)
+                im1.set_data(v_x)
+                im1.set_clim(v_x.min(), v_x.max())
+                im2.set_data(v_z)
+                im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
                                 format(m*self.dt, m+1, nstep))
@@ -377,6 +379,8 @@ class GrilleFDTD:
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
+            im1 = ax1.imshow(v_x)
+            im2 = ax2.imshow(v_z)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
@@ -397,10 +401,10 @@ class GrilleFDTD:
             tau_xz[] +=
 
             if showPlot and np.remainder(m, 20) == 0:
-                ax1.clear()
-                ax1.imshow(v_x)
-                ax2.clear()
-                ax2.imshow(v_z)
+                im1.set_data(v_x)
+                im1.set_clim(v_x.min(), v_x.max())
+                im2.set_data(v_z)
+                im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
                                 format(m*self.dt, m+1, nstep))
@@ -420,6 +424,8 @@ class GrilleFDTD:
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
+            im1 = ax1.imshow(v_x)
+            im2 = ax2.imshow(v_z)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
@@ -462,10 +468,10 @@ class GrilleFDTD:
                     c2 * (v_z[] - v_z[]))
 
             if showPlot and np.remainder(m, 20) == 0:
-                ax1.clear()
-                ax1.imshow(v_x)
-                ax2.clear()
-                ax2.imshow(v_z)
+                im1.set_data(v_x)
+                im1.set_clim(v_x.min(), v_x.max())
+                im2.set_data(v_z)
+                im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
                                 format(m*self.dt, m+1, nstep))
@@ -527,6 +533,8 @@ class GrilleFDTD:
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
+            im1 = ax1.imshow(v_x)
+            im2 = ax2.imshow(v_z)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
@@ -746,10 +754,10 @@ class GrilleFDTD:
                 E[m] = np.sum(tmp[ind])
 
             if showPlot and np.remainder(m, 20) == 0:
-                ax1.clear()
-                ax1.imshow(v_x)
-                ax2.clear()
-                ax2.imshow(v_z)
+                im1.set_data(v_x)
+                im1.set_clim(v_x.min(), v_x.max())
+                im2.set_data(v_z)
+                im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
                 plt.pause(0.01)

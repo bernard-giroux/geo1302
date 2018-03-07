@@ -87,16 +87,16 @@ class CPML:
         self.cx[np.isnan(self.cx)] = 0.0
 
         self.inuz = np.ones((nz, nx))
-        self.inuz[] =
-        self.inuz[] =
+        self.inuz[:self.N,:] = np.kron(1. / nu[::-1], np.ones((nx, 1))).T
+        self.inuz[(nz-self.N):,:] = np.kron(1. / nu, np.ones((nx, 1))).T
 
         d = np.zeros((nz, nx))
-        d[] =
-        d[] =
+        d[:self.N,:] = np.kron(dx_pml[::-1], np.ones((nx, 1))).T
+        d[(nz-self.N):,:] = np.kron(dx_pml, np.ones((nx, 1))).T
 
         alpha = np.zeros((nz, nx))
-        alpha[] =
-        alpha[] =
+        alpha[:self.N,:] = np.kron(alpha_pml[::-1], np.ones((nx, 1))).T
+        alpha[(nz-self.N):,:] = np.kron(alpha_pml, np.ones((nx, 1))).T
 
         self.bz = np.exp(-(d * self.inuz + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -133,16 +133,16 @@ class CPML:
         self.cx2[np.isnan(self.cx2)] = 0.0
 
         self.inuz2 = np.ones((nz, nx))
-        self.inuz2[] =
-        self.inuz2[] =
+        self.inuz2[:self.N,:] = np.kron(1. / nu1[::-1], np.ones((nx, 1))).T
+        self.inuz2[(nz-self.N-1):,:] = np.kron(1. / nu2, np.ones((nx, 1))).T
 
         d = np.zeros((nz, nx))
-        d[] =
-        d[] =
+        d[:self.N,:] = np.kron(dx1_pml[::-1], np.ones((nx, 1))).T
+        d[(nz-self.N-1):,:] = np.kron(dx2_pml, np.ones((nx, 1))).T
 
         alpha = np.zeros((nz, nx))
-        alpha[] =
-        alpha[] =
+        alpha[:self.N,:] = np.kron(alpha1_pml[::-1], np.ones((nx, 1))).T
+        alpha[(nz-self.N-1):,:] = np.kron(alpha2_pml, np.ones((nx, 1))).T
 
         self.bz2 = np.exp(-(d * self.inuz2 + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -561,28 +561,28 @@ class GrilleFDTD:
                 v_x[2:-2,0]=(1-a1.alpha_g[2:-2]) * v_x[2:-2,0]+a1.alpha_g[2:-2] * v_x[2:-2,1]
 
                 # PML -> update nodes that were not updated with A1
-                ddx=c1*(tau_xx[2:-2,2:-2]-tau_xx[2:-2,1:-3])-c2*(tau_xx[2:-2,3:-1]-tau_xx[2:-2,:-4])
-                ddz=c1*(tau_xz[2:-2,2:-2]-tau_xz[1:-3,2:-2])-c2*(tau_xz[3:-1,2:-2]-tau_xz[:-4,2:-2])
+                ddx = c1*(tau_xx[2:-2,2:-2]-tau_xx[2:-2,1:-3])-c2*(tau_xx[2:-2,3:-1]-tau_xx[2:-2,:-4])
+                ddz = c1*(tau_xz[2:-2,2:-2]-tau_xz[1:-3,2:-2])-c2*(tau_xz[3:-1,2:-2]-tau_xz[:-4,2:-2])
 
                 pml.psi_txxx[2:-2,2:-2] = pml.bx[2:-2,2:-2] * pml.psi_txxx[2:-2,2:-2] + pml.cx[2:-2,2:-2] * ddx
                 pml.psi_txzz[2:-2,2:-2] = pml.bz[2:-2,2:-2] * pml.psi_txzz[2:-2,2:-2] + pml.cz[2:-2,2:-2] * ddz
 
-                ddx=pml.inux[2:-2,2:-2] * ddx + pml.psi_txxx[2:-2,2:-2]
-                ddz=pml.inuz[2:-2,2:-2] * ddz + pml.psi_txzz[2:-2,2:-2]
+                ddx = pml.inux[2:-2,2:-2] * ddx + pml.psi_txxx[2:-2,2:-2]
+                ddz = pml.inuz[2:-2,2:-2] * ddz + pml.psi_txzz[2:-2,2:-2]
 
                 v_x[2:-2,2:-2] += b1[2:-2,2:-2] * (ddx + ddz)
 
             elif pml is not None:
-                ddx=c1*(tau_xx[]-tau_xx[])-c2*(tau_xx[]-tau_xx[])
-                ddz=c1*(tau_xz[]-tau_xz[])-c2*(tau_xz[]-tau_xz[])
+                ddx = c1*(tau_xx[2:-1,2:-1]-tau_xx[2:-1,1:-2])-c2*(tau_xx[2:-1,3:]-tau_xx[2:-1,:-3])
+                ddz = c1*(tau_xz[2:-1,2:-1]-tau_xz[1:-2,2:-1])-c2*(tau_xz[3:,2:-1]-tau_xz[:-3,2:-1])
 
-                pml.psi_txxx[] = pml.bx[]*pml.psi_txxx[] + pml.cx[]*ddx
-                pml.psi_txzz[] = pml.bz[]*pml.psi_txzz[] + pml.cz[]*ddz
+                pml.psi_txxx[2:-1,2:-1] = pml.bx[2:-1,2:-1]*pml.psi_txxx[2:-1,2:-1] + pml.cx[2:-1,2:-1]*ddx
+                pml.psi_txzz[2:-1,2:-1] = pml.bz[2:-1,2:-1]*pml.psi_txzz[2:-1,2:-1] + pml.cz[2:-1,2:-1]*ddz
 
-                ddx=pml.inux[]*ddx + pml.psi_txxx[]
-                ddz=pml.inuz[]*ddz + pml.psi_txzz[]
+                ddx = pml.inux[2:-1,2:-1]*ddx + pml.psi_txxx[2:-1,2:-1]
+                ddz = pml.inuz[2:-1,2:-1]*ddz + pml.psi_txzz[2:-1,2:-1]
 
-                v_x[] += b1[]*(ddx + ddz)
+                v_x[2:-1,2:-1] += b1[2:-1,2:-1]*(ddx + ddz)
 
             elif a1 is not None:
                 # en haut
@@ -626,29 +626,29 @@ class GrilleFDTD:
                 v_z[2:-2,0]=(1-a1.beta_d[2:-2]) * v_z[2:-2,0]+a1.beta_d[2:-2] * v_z[2:-2,1]
 
                 # PML
-                ddx=c1*(tau_xz[2:-2,3:-1]-tau_xz[2:-2,2:-2])-c2*(tau_xz[2:-2,4:]-tau_xz[2:-2,1:-3])
-                ddz=c1*(tau_zz[3:-1,2:-2]-tau_zz[2:-2,2:-2])-c2*(tau_zz[4:,2:-2]-tau_zz[1:-3,2:-2])
+                ddx = c1*(tau_xz[2:-2,3:-1]-tau_xz[2:-2,2:-2])-c2*(tau_xz[2:-2,4:]-tau_xz[2:-2,1:-3])
+                ddz = c1*(tau_zz[3:-1,2:-2]-tau_zz[2:-2,2:-2])-c2*(tau_zz[4:,2:-2]-tau_zz[1:-3,2:-2])
 
                 pml.psi_txzx[2:-2,2:-2] = pml.bx2[2:-2,2:-2] * pml.psi_txzx[2:-2,2:-2] + pml.cx2[2:-2,2:-2] * ddx
                 pml.psi_tzzz[2:-2,2:-2] = pml.bz2[2:-2,2:-2] * pml.psi_tzzz[2:-2,2:-2] + pml.cz2[2:-2,2:-2] * ddz
 
-                ddx=pml.inux2[2:-2,2:-2] * ddx + pml.psi_txzx[2:-2,2:-2]
-                ddz=pml.inuz2[2:-2,2:-2] * ddz + pml.psi_tzzz[2:-2,2:-2]
+                ddx = pml.inux2[2:-2,2:-2] * ddx + pml.psi_txzx[2:-2,2:-2]
+                ddz = pml.inuz2[2:-2,2:-2] * ddz + pml.psi_tzzz[2:-2,2:-2]
 
                 v_z[2:-2,2:-2] += b2[2:-2,2:-2] * (ddx + ddz)
 
             elif pml is not None:
-                ddx=c1*(tau_xz[]-tau_xz[])-c2*(tau_xz[]-tau_xz[1:-2,:-3])
-                ddz=c1*(tau_zz[]-tau_zz[])-c2*(tau_zz[3:,1:-2]-tau_zz[])
+                ddx = c1*(tau_xz[1:-2,2:-1]-tau_xz[1:-2,1:-2])-c2*(tau_xz[1:-2,3:]-tau_xz[1:-2,:-3])
+                ddz = c1*(tau_zz[2:-1,1:-2]-tau_zz[1:-2,1:-2])-c2*(tau_zz[3:,1:-2]-tau_zz[:-3,1:-2])
 
-                pml.psi_txzx[] = pml.bx2[]*pml.psi_txzx[] + pml.cx2[]*ddx
+                pml.psi_txzx[1:-2,1:-2] = pml.bx2[1:-2,1:-2]*pml.psi_txzx[1:-2,1:-2] + pml.cx2[1:-2,1:-2]*ddx
 
-                pml.psi_tzzz[] = pml.bz2[]*pml.psi_tzzz[] + pml.cz2[]*ddz
+                pml.psi_tzzz[1:-2,1:-2] = pml.bz2[1:-2,1:-2]*pml.psi_tzzz[1:-2,1:-2] + pml.cz2[1:-2,1:-2]*ddz
 
-                ddx=pml.inux2[]*ddx + pml.psi_txzx[]
-                ddz=pml.inuz2[]*ddz + pml.psi_tzzz[]
+                ddx = pml.inux2[1:-2,1:-2]*ddx + pml.psi_txzx[1:-2,1:-2]
+                ddz = pml.inuz2[1:-2,1:-2]*ddz + pml.psi_tzzz[1:-2,1:-2]
 
-                v_z[] += b2[]*(ddx + ddz)
+                v_z[1:-2,1:-2] += b2[1:-2,1:-2]*(ddx + ddz)
 
             elif a1 is not None:
                 # en haut
@@ -698,31 +698,28 @@ class GrilleFDTD:
 
             # Contraintes
             if pml is not None:
-                ddx=c1*(v_x[]-v_x[])-c2*(v_x[]-v_x[])
-                ddz=c1*(v_z[]-v_z[])-c2*(v_z[3:,1:-2]-v_z[])
+                ddx = c1*(v_x[2:-1,2:-1]-v_x[2:-1,1:-2])-c2*(v_x[2:-1,3:]-v_x[2:-1,:-3])
+                ddz = c1*(v_z[2:-1,1:-2]-v_z[1:-2,1:-2])-c2*(v_z[3:,1:-2]-v_z[:-3,1:-2])
 
-                pml.psi_vxx[] = pml.bx2[]*pml.psi_vxx[] + pml.cx2[]*ddx
+                pml.psi_vxx[2:-1,1:-2] = pml.bx2[2:-1,1:-2]*pml.psi_vxx[2:-1,1:-2] + pml.cx2[2:-1,1:-2]*ddx
+                pml.psi_vzz[2:-1,1:-2] = pml.bz[2:-1,1:-2]*pml.psi_vzz[2:-1,1:-2] + pml.cz[2:-1,1:-2]*ddz
 
-                pml.psi_vzz[] = pml.bz[]*pml.psi_vzz[] + pml.cz[]*ddz
+                ddx = pml.inux2[2:-1,1:-2]*ddx + pml.psi_vxx[2:-1,1:-2]
+                ddz = pml.inuz[2:-1,1:-2]*ddz + pml.psi_vzz[2:-1,1:-2]
 
-                ddx=pml.inux2[]*ddx + pml.psi_vxx[]
-                ddz=pml.inuz[]*ddz + pml.psi_vzz[]
+                tau_xx[2:-1,1:-2] += lm[2:-1,1:-2]*ddx + ll[2:-1,1:-2]*ddz
+                tau_zz[2:-1,1:-2] += lm[2:-1,1:-2]*ddz + ll[2:-1,1:-2]*ddx
 
-                tau_xx[] += lm[]*ddx + ll[]*ddz
+                ddx = c1*(v_z[1:-2,2:-1]-v_z[1:-2,1:-2])-c2*(v_z[1:-2,3:]-v_z[1:-2,:-3])
+                ddz = c1*(v_x[2:-1,2:-1]-v_x[1:-2,2:-1])-c2*(v_x[3:,2:-1]-v_x[:-3,2:-1])
 
-                tau_zz[] += lm[]*ddz + ll[]*ddx
+                pml.psi_vzx[1:-2,2:-1] = pml.bx[1:-2,2:-1]*pml.psi_vzx[1:-2,2:-1] + pml.cx[1:-2,2:-1]*ddx
+                pml.psi_vxz[1:-2,2:-1] = pml.bz2[1:-2,2:-1]*pml.psi_vxz[1:-2,2:-1] + pml.cz2[1:-2,2:-1]*ddz
 
-                ddx=c1*(v_z[]-v_z[])-c2*(v_z[]-v_z[1:-2,:-3])
-                ddz=c1*(v_x[]-v_x[])-c2*(v_x[]-v_x[])
+                ddx = pml.inux[1:-2,2:-1]*ddx + pml.psi_vzx[1:-2,2:-1]
+                ddz = pml.inuz2[1:-2,2:-1]*ddz + pml.psi_vxz[1:-2,2:-1]
 
-                pml.psi_vzx[] = pml.bx[]*pml.psi_vzx[] + pml.cx[]*ddx
-
-                pml.psi_vxz[] = pml.bz2[]*pml.psi_vxz[] + pml.cz2[]*ddz
-
-                ddx=pml.inux[]*ddx + pml.psi_vzx[]
-                ddz=pml.inuz2[]*ddz + pml.psi_vxz[]
-
-                tau_xz[] += mm[]*(ddx + ddz)
+                tau_xz[1:-2,2:-1] += mm[1:-2,2:-1]*(ddx + ddz)
 
             else:
                 tau_xx[] += lm[] * (

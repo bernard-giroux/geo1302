@@ -182,7 +182,7 @@ class GrilleVF:
 
     def sol_an_dipole(self, chi, B0, xo):
         """
-        Solution analytique pour un dipole éqiuvalent
+        Solution analytique pour un dipole équivalent
         """
 
         # réplique des largeurs des voxels pour l'ensemble des voxels

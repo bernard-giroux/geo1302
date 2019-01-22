@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 import numpy as np
 import h5py
 
@@ -254,4 +254,4 @@ if __name__ == '__main__':
 
     print('{0:e}  {1:e}'.format(t_G, t_mult))
 
-    g.toXdmf(self, rho, 'rho', 'grille')
+    g.toXdmf(rho, 'rho', 'grille')

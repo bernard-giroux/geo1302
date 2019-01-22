@@ -50,6 +50,7 @@ class GrilleVF:
             k = k.flatten()
         if np.any(i<0) or
             raise IndexError('Index out of bound')
+        # on utlise np.size car i peut être un scalaire
         if np.size(i)>1 or np.size(j)>1 or np.size(k)>1:
             ii = np.kron(
             jj = np.kron(

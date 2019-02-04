@@ -8,6 +8,7 @@ Created on Sun Jan 29 22:25:43 2017
 import math
 import scipy.sparse as sp
 from scipy.interpolate import interpn
+from scipy.sparse.linalg import bicgstab
 import numpy as np
 import h5py
 
@@ -154,7 +155,7 @@ class GrilleVF:
         if chtot == 1:
             q = f + g
             A = D.dot(M.dot(G))
-            phi, info = sp.linalg.bicgstab(A, q, tol=tol, maxiter=maxit)
+            phi, info = bicgstab(A, q, tol=tol, maxiter=maxit)
             B = M.dot(G.dot(phi))
         else:
             BB0 = np.hstack((B0[0]+np.zeros((self.nfx,)),
@@ -164,7 +165,7 @@ class GrilleVF:
             Mtmp =
             q =
             A =
-            phi_s, info = sp.linalg.bicgstab(A, q, tol=tol, maxiter=maxit)
+            phi_s, info = bicgstab(A, q, tol=tol, maxiter=maxit)
             B =
 
         Bx = B[:self.nfx]
@@ -228,8 +229,8 @@ class GrilleVF:
         i =
         j =
         nval = i.size
-        ii = np.zeros((self.ny*self.nz*nval,))
-        jj = np.zeros((self.ny*self.nz*nval,))
+        ii = np.empty((self.ny*self.nz*nval,), dtype=np.int64)
+        jj = np.empty((self.ny*self.nz*nval,), dtype=np.int64)
         for n in np.arange(self.ny*self.nz):
             ii[] =
             jj[] =
@@ -243,8 +244,8 @@ class GrilleVF:
         i =
         j =
         nval = i.size
-        ii = np.zeros((self.nz*nval,))
-        jj = np.zeros((self.nz*nval,))
+        ii = np.empty((self.nz*nval,), dtype=np.int64)
+        jj = np.empty((self.nz*nval,), dtype=np.int64)
         for n in np.arange(self.nz):
             ii[] =
             jj[] =
@@ -354,8 +355,8 @@ class GrilleVF:
         i =
         j =
         nval = i.size
-        ii = np.zeros((self.ny*self.nz*nval,))
-        jj = np.zeros((self.ny*self.nz*nval,))
+        ii = np.empty((self.ny*self.nz*nval,), dtype=np.int64)
+        jj = np.empty((self.ny*self.nz*nval,), dtype=np.int64)
         for n in np.arange(self.ny*self.nz):
             ii[] =
             jj[] =
@@ -369,8 +370,8 @@ class GrilleVF:
         i =
         j =
         nval = i.size
-        ii = np.zeros((self.nz*nval,))
-        jj = np.zeros((self.nz*nval,))
+        ii = np.empty((self.nz*nval,), dtype=np.int64)
+        jj = np.empty((self.nz*nval,), dtype=np.int64)
         for n in np.arange(self.nz):
             ii[] =
             jj[] =

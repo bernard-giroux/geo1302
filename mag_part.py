@@ -139,7 +139,26 @@ class GrilleVF:
         self.__update_n()
 
 
-    def magmod(self, chi, B0, xo, usecl, chtot, tol=1.e-8, maxit=1000):
+    def magmod(self, chi, B0, xo, spheq, chtot, tol=1.e-8, maxit=1000):
+        '''
+        Calcul la réponse magnétique
+
+        Paramètres
+        ----------
+        chi   : susceptibilité des voxels de la grille (nc x 1)
+        B0    : champ ambiant (3 x 1)
+        xo    : pts d'observation (npts x 3)
+        spheq : sphère équivalente pour les cond. limites (1: oui, 0:non)
+        chtot : calcul le champ total (1) ou l'anomalie (0)
+        tol   : tolérance de bicgstab
+        maxit : Nbre max d'itération de bicgstab
+
+        Retourne
+        --------
+        Bx, By, Bz  : arrays numpy
+            valeurs du champ interpolé au points xo
+
+        '''
         B0 = np.array(B0)
         mu0 = 4*math.pi*1.e-7
         mu = mu0 * (1+chi)
@@ -149,7 +168,7 @@ class GrilleVF:
         G = self.fabrique_G()
         f,g = self.fabrique_cf(B0,chi)
 
-        if usecl == 0:
+        if spheq == 0:
             g[:] = 0.0
 
         if chtot == 1:

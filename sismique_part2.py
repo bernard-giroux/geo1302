@@ -13,6 +13,7 @@ from numba import jit
 
 from utils import nargout
 
+
 class CPML:
     def __init__(self, N=20, nd=2.0, Rc=0.001, nu0=2.0, nnu=2.0,
                  alpha0=20*np.pi, nalpha=1.0):
@@ -36,7 +37,7 @@ class CPML:
 
     def prepare(self, nx, nz, dx, dt, V):
         """
-        Calcul des coefficients utilisés avec les PML (taille: nz x nx)
+        Calcul des coefficients utilisés avec les PML (taille: nx x nz
 
           inux     : 1/nu_x évalué à x = i Delta x
           bx       : b_x    évalué à x = i Delta x
@@ -62,41 +63,41 @@ class CPML:
         """
         # à (i,j)
 
-        xp =
+        xp = 
         d0 = (self.nd+1) * np.log(1/self.Rc)*V / (2*self.N*dx)
-        dx_pml =
+        dx_pml = 
 
         nu = 1. + (self.nu0-1.) * (xp / (self.N*dx))**self.nnu
         alpha_pml = self.alpha0*(1. - (xp / (self.N*dx))**self.nalpha)
 
-        self.inux = np.ones((nz, nx))
+        self.inux = np.ones((nx, nz))
         self.inux[] =
         self.inux[] =
 
-        d = np.zeros((nz, nx))
+        d = np.zeros((nx, nz))
         d[] =
         d[] =
 
-        alpha = np.zeros((nz, nx))
-        alpha[] =
-        alpha[] =
+        alpha = np.zeros((nx, nz))
+        alpha[] = 
+        alpha[] = 
 
         self.bx = np.exp(-(d * self.inux + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
             self.cx = d * self.inux * (self.bx-1.) / (d+alpha / self.inux)
         self.cx[np.isnan(self.cx)] = 0.0
 
-        self.inuz = np.ones((nz, nx))
-        self.inuz[:self.N,:] = np.kron(1. / nu[::-1], np.ones((nx, 1))).T
-        self.inuz[(nz-self.N):,:] = np.kron(1. / nu, np.ones((nx, 1))).T
+        self.inuz = np.ones((nx, nz))
+        self.inuz[:, :self.N] =np.kron(1. / nu[::-1], np.ones((nx, 1)))
+        self.inuz[:, (nz-self.N):] =np.kron(1. / nu, np.ones((nx, 1)))
 
-        d = np.zeros((nz, nx))
-        d[:self.N,:] = np.kron(dx_pml[::-1], np.ones((nx, 1))).T
-        d[(nz-self.N):,:] = np.kron(dx_pml, np.ones((nx, 1))).T
+        d = np.zeros((nx, nz))
+        d[:, :self.N] =np.kron(dx_pml[::-1], np.ones((nx, 1)))
+        d[:, (nz-self.N):] =np.kron(dx_pml, np.ones((nx, 1)))
 
-        alpha = np.zeros((nz, nx))
-        alpha[:self.N,:] = np.kron(alpha_pml[::-1], np.ones((nx, 1))).T
-        alpha[(nz-self.N):,:] = np.kron(alpha_pml, np.ones((nx, 1))).T
+        alpha = np.zeros((nx, nz))
+        alpha[:, :self.N] =np.kron(alpha_pml[::-1], np.ones((nx, 1)))
+        alpha[:, (nz-self.N):] =np.kron(alpha_pml, np.ones((nx, 1)))
 
         self.bz = np.exp(-(d * self.inuz + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -115,15 +116,15 @@ class CPML:
         alpha1_pml = self.alpha0 * (1. - (xp1 / (self.N*dx))**self.nalpha)
         alpha2_pml = self.alpha0 * (1. - (xp2 / (self.N*dx))**self.nalpha)
 
-        self.inux2 = np.ones((nz, nx))
+        self.inux2 = np.ones((nx, nz))
         self.inux2[] =
         self.inux2[] =
 
-        d = np.zeros((nz, nx))
+        d = np.zeros((nx, nz))
         d[] =
         d[] =
 
-        alpha = np.zeros((nz, nx))
+        alpha = np.zeros((nx, nz))
         alpha[] =
         alpha[] =
 
@@ -132,53 +133,53 @@ class CPML:
             self.cx2 = d * self.inux2 * (self.bx2-1.) / (d+alpha / self.inux2)
         self.cx2[np.isnan(self.cx2)] = 0.0
 
-        self.inuz2 = np.ones((nz, nx))
-        self.inuz2[:self.N,:] = np.kron(1. / nu1[::-1], np.ones((nx, 1))).T
-        self.inuz2[(nz-self.N-1):,:] = np.kron(1. / nu2, np.ones((nx, 1))).T
+        self.inuz2 = np.ones((nx, nz))
+        self.inuz2[:, :self.N] =np.kron(1. / nu1[::-1], np.ones((nx, 1)))
+        self.inuz2[:, (nz-self.N-1):] =np.kron(1. / nu2, np.ones((nx, 1)))
 
-        d = np.zeros((nz, nx))
-        d[:self.N,:] = np.kron(dx1_pml[::-1], np.ones((nx, 1))).T
-        d[(nz-self.N-1):,:] = np.kron(dx2_pml, np.ones((nx, 1))).T
+        d = np.zeros((nx, nz))
+        d[:, :self.N] =np.kron(dx1_pml[::-1], np.ones((nx, 1)))
+        d[:, (nz-self.N-1):] =np.kron(dx2_pml, np.ones((nx, 1)))
 
-        alpha = np.zeros((nz, nx))
-        alpha[:self.N,:] = np.kron(alpha1_pml[::-1], np.ones((nx, 1))).T
-        alpha[(nz-self.N-1):,:] = np.kron(alpha2_pml, np.ones((nx, 1))).T
+        alpha = np.zeros((nx, nz))
+        alpha[:, :self.N] =np.kron(alpha1_pml[::-1], np.ones((nx, 1)))
+        alpha[:, (nz-self.N-1):] =np.kron(alpha2_pml, np.ones((nx, 1)))
 
         self.bz2 = np.exp(-(d * self.inuz2 + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
             self.cz2 = d * self.inuz2 * (self.bz2-1.) / (d+alpha / self.inuz2)
         self.cz2[np.isnan(self.cz2)] = 0.0
 
-        self.psi_txxx = np.zeros((nz, nx))
-        self.psi_txzz = np.zeros((nz, nx))
-        self.psi_txzx = np.zeros((nz, nx))
-        self.psi_tzzz = np.zeros((nz, nx))
-        self.psi_vxx = np.zeros((nz, nx))
-        self.psi_vzz = np.zeros((nz, nx))
-        self.psi_vxz = np.zeros((nz, nx))
-        self.psi_vzx = np.zeros((nz, nx))
+        self.psi_txxx = np.zeros((nx, nz))
+        self.psi_txzz = np.zeros((nx, nz))
+        self.psi_txzx = np.zeros((nx, nz))
+        self.psi_tzzz = np.zeros((nx, nz))
+        self.psi_vxx = np.zeros((nx, nz))
+        self.psi_vzz = np.zeros((nx, nz))
+        self.psi_vxz = np.zeros((nx, nz))
+        self.psi_vzx = np.zeros((nx, nz))
 
     def reset_vm(self):
-        self.psi_txxx[:,:] = 0.0
-        self.psi_txzz[:,:] = 0.0
-        self.psi_txzx[:,:] = 0.0
-        self.psi_tzzz[:,:] = 0.0
-        self.psi_vxx[:,:] = 0.0
-        self.psi_vzz[:,:] = 0.0
-        self.psi_vxz[:,:] = 0.0
-        self.psi_vzx[:,:] = 0.0
+        self.psi_txxx[:, :] = 0.0
+        self.psi_txzz[:, :] = 0.0
+        self.psi_txzx[:, :] = 0.0
+        self.psi_tzzz[:, :] = 0.0
+        self.psi_vxx[:, :] = 0.0
+        self.psi_vzz[:, :] = 0.0
+        self.psi_vxz[:, :] = 0.0
+        self.psi_vzx[:, :] = 0.0
 
 
 class A1():
     def __init__(self, Vp, Vs, dx, dt):
-        self.alpha_h = Vp[0, :] * dt/dx
-        self.beta_h  = Vs[0, :] * dt/dx
-        self.alpha_b = Vp[-1,:] * dt/dx
-        self.beta_b  = Vs[-1,:] * dt/dx
-        self.alpha_g = Vp[:, 0] * dt/dx
-        self.beta_g  = Vs[:, 0] * dt/dx
-        self.alpha_d = Vp[:,-1] * dt/dx
-        self.beta_d  = Vs[:,-1] * dt/dx
+        self.alpha_h = Vp[:, 0] * dt/dx
+        self.beta_h  = Vs[:, 0] * dt/dx
+        self.alpha_b = Vp[:, -1] * dt/dx
+        self.beta_b  = Vs[:, -1] * dt/dx
+        self.alpha_g = Vp[0, :] * dt/dx
+        self.beta_g  = Vs[0, :] * dt/dx
+        self.alpha_d = Vp[-1, :] * dt/dx
+        self.beta_d  = Vs[-1, :] * dt/dx
 
 
 class GrilleFDTD:
@@ -243,16 +244,16 @@ class GrilleFDTD:
         Calcul des coefficients constants
 
         Input
-            Vp: vitesse des ondes P en m/s                (taille: nz par nx)
-            Vs: vitesse des ondes S en m/s                (taille: nz par nx)
-            rho: densité en kg/m^3                        (taille: nz par nx)
+            Vp: vitesse des ondes P en m/s                (taille: nx par nz)
+            Vs: vitesse des ondes S en m/s                (taille: nx par nz)
+            rho: densité en kg/m^3                        (taille: nx par nz)
             dt: pas temporel en s
         """
-        if Vp.shape != (self.nz, self.nx):
+        if Vp.shape != (self.nx, self.nz):
             raise ValueError('Size of Vp incorrect')
-        if Vs.shape != (self.nz, self.nx):
+        if Vs.shape != (self.nx, self.nz):
             raise ValueError('Size of Vs incorrect')
-        if rho.shape != (self.nz, self.nx):
+        if rho.shape != (self.nx, self.nz):
             raise ValueError('Size of rho incorrect')
 
         self.dt = dt
@@ -271,8 +272,8 @@ class GrilleFDTD:
         # create array of node coordinates at i+1/2, j+1/2
         xi = np.hstack((
 
-        rho2 = interpn((self.z, self.x), rho, xi)
-        rho2 = rho2.reshape(self.nz, self.nx)
+        rho2 = interpn((self.x, self.z), rho, xi)
+        rho2 = rho2.reshape(self.nx, self.nz)
 
         self.b2 =
 
@@ -284,11 +285,11 @@ class GrilleFDTD:
         z = self.z.reshape(-1, 1)
 
         xi = np.hstack((
-
+            
         lambda2 =
         mu2 =
-        lambda2 = lambda2.reshape(self.nz, self.nx)
-        mu2 = mu2.reshape(self.nz, self.nx)
+        lambda2 = lambda2.reshape(self.nx, self.nz)
+        mu2 = mu2.reshape(self.nx, self.nz)
 
         self.lm = dt / self.dx * (lambda2 + 2*mu2)
         self.l = dt / self.dx * lambda2
@@ -301,94 +302,94 @@ class GrilleFDTD:
         z[-1] = z[-2]
 
         xi = np.hstack((
-
+            
         mu2 =
-        mu2 = mu2.reshape(self.nz, self.nx)
+        mu2 = mu2.reshape(self.nx, self.nz)
 
         self.m = dt / self.dx * mu2
-
+            
     @jit
     def propage0(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
 
-        tau_xx = np.zeros((self.nz, self.nx))
-        tau_zz = np.zeros((self.nz, self.nx))
-        tau_xz = np.zeros((self.nz, self.nx))
-        v_x = np.zeros((self.nz, self.nx))
-        v_z = np.zeros((self.nz, self.nx))
+        tau_xx = np.zeros((self.nx, self.nz))
+        tau_zz = np.zeros((self.nx, self.nz))
+        tau_xz = np.zeros((self.nx, self.nz))
+        v_x = np.zeros((self.nx, self.nz))
+        v_z = np.zeros((self.nx, self.nz))
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
-            im1 = ax1.imshow(v_x)
-            im2 = ax2.imshow(v_z)
+            im1 = ax1.imshow(v_x.T)
+            im2 = ax2.imshow(v_z.T)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
         for m in range(nstep):
 
             # applique la source au noeud (i+1/2,j)
-            tau_zz[src.j, src.i] += src(m)
-            tau_xx[src.j, src.i] += src(m)
+            tau_zz[src.i, src.j] += src(m)
+            tau_xx[src.i, src.j] += src(m)
 
-            for j in np.arange(1, self.nz):
-                for i in np.arange(1, self.nx):
-                    v_x[j,i] = v_x[j,i] + self.b1[j,i] * (
-                        (tau_xx[j,i]-tau_xx[j,i-1]) +
-                        (tau_xz[j,i]-tau_xz[j-1,i]))
+            for i in np.arange(1, self.nx):
+                for j in np.arange(1, self.nz):
+                    v_x[i, j] = v_x[i, j] + self.b1[i, j] * (
+                        (tau_xx[i, j]-tau_xx[i-1, j]) +
+                        (tau_xz[i, j]-tau_xz[i, j-1]))
 
-            for j in np.arange(0, self.nz-1):
-                for i in np.arange(0, self.nx-1):
-                    v_z[j,i] = v_z[j,i] + self.b2[j,i] * (
-                        (tau_xz[j,i+1]-tau_xz[j,i]) +
-                        (tau_zz[j+1,i]-tau_zz[j,i]))
+            for i in np.arange(0, self.nx-1):
+                for j in np.arange(0, self.nz-1):
+                    v_z[i, j] = v_z[i, j] + self.b2[i, j] * (
+                        (tau_xz[i+1, j]-tau_xz[i, j]) +
+                        (tau_zz[i, j+1]-tau_zz[i, j]))
 
-            for j in np.arange(1, self.nz):
-                for i in np.arange(0, self.nx-1):
-                    tau_xx[j,i] += self.lm[j,i] * (v_x[j,i+1]-v_x[j,i]) + \
-                        self.l[j,i] * (v_z[j,i]-v_z[j-1,i])
+            for i in np.arange(0, self.nx-1):
+                for j in np.arange(1, self.nz):
+                    tau_xx[i, j] += self.lm[i, j] * (v_x[i+1, j]-v_x[i, j]) + \
+                        self.l[i, j] * (v_z[i, j]-v_z[i, j-1])
 
-                    tau_zz[j,i] += self.lm[j,i] * (v_z[j,i]-v_z[j-1,i]) + \
-                        self.l[j,i] * (v_x[j,i+1]-v_x[j,i])
+                    tau_zz[i, j] += self.lm[i, j] * (v_z[i, j]-v_z[i, j-1]) + \
+                        self.l[i, j] * (v_x[i+1, j]-v_x[i, j])
 
-            for j in np.arange(0, self.nz-1):
-                for i in np.arange(1, self.nx):
-                    tau_xz[j,i] += self.m[j,i] * (
-                        v_x[j+1,i]-v_x[j,i] +
-                        v_z[j,i]-v_z[j,i-1])
+            for i in np.arange(1, self.nx):
+                for j in np.arange(0, self.nz-1):
+                    tau_xz[i, j] += self.m[i, j] * (
+                        v_x[i, j+1]-v_x[i, j] +
+                        v_z[i, j]-v_z[i-1, j])
 
             if showPlot and np.remainder(m, 20) == 0:
-                im1.set_data(v_x)
+                im1.set_data(v_x.T)
                 im1.set_clim(v_x.min(), v_x.max())
-                im2.set_data(v_z)
+                im2.set_data(v_z.T)
                 im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
-                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
-                                format(m*self.dt, m+1, nstep))
+                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
                 plt.pause(0.01)
+
 
     def propage(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
 
-        tau_xx = np.zeros((self.nz, self.nx))
-        tau_zz = np.zeros((self.nz, self.nx))
-        tau_xz = np.zeros((self.nz, self.nx))
-        v_x = np.zeros((self.nz, self.nx))
-        v_z = np.zeros((self.nz, self.nx))
+        tau_xx = np.zeros((self.nx, self.nz))
+        tau_zz = np.zeros((self.nx, self.nz))
+        tau_xz = np.zeros((self.nx, self.nz))
+        v_x = np.zeros((self.nx, self.nz))
+        v_z = np.zeros((self.nx, self.nz))
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
-            im1 = ax1.imshow(v_x)
-            im2 = ax2.imshow(v_z)
+            im1 = ax1.imshow(v_x.T)
+            im2 = ax2.imshow(v_z.T)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
         for m in range(nstep):
 
             # applique la source au noeud (i+1/2,j)
-            tau_zz[src.j, src.i] += src(m)
-            tau_xx[src.j, src.i] += src(m)
+            tau_zz[src.i, src.j] += src(m)
+            tau_xx[src.i, src.j] += src(m)
 
             v_x[] +=
 
@@ -401,14 +402,14 @@ class GrilleFDTD:
             tau_xz[] +=
 
             if showPlot and np.remainder(m, 20) == 0:
-                im1.set_data(v_x)
+                im1.set_data(v_x.T)
                 im1.set_clim(v_x.min(), v_x.max())
-                im2.set_data(v_z)
+                im2.set_data(v_z.T)
                 im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
-                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
-                                format(m*self.dt, m+1, nstep))
+                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
                 plt.pause(0.01)
+
 
     def propageO24(self, src, t, showPlot=False):
         nstep = 1 + int(t/self.dt)
@@ -416,24 +417,24 @@ class GrilleFDTD:
         c1 = 9./8.
         c2 = 1./24.
 
-        tau_xx = np.zeros((self.nz, self.nx))
-        tau_zz = np.zeros((self.nz, self.nx))
-        tau_xz = np.zeros((self.nz, self.nx))
-        v_x = np.zeros((self.nz, self.nx))
-        v_z = np.zeros((self.nz, self.nx))
+        tau_xx = np.zeros((self.nx, self.nz))
+        tau_zz = np.zeros((self.nx, self.nz))
+        tau_xz = np.zeros((self.nx, self.nz))
+        v_x = np.zeros((self.nx, self.nz))
+        v_z = np.zeros((self.nx, self.nz))
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
-            im1 = ax1.imshow(v_x)
-            im2 = ax2.imshow(v_z)
+            im1 = ax1.imshow(v_x.T)
+            im2 = ax2.imshow(v_z.T)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
         for m in range(nstep):
 
             # applique la source au noeud (i+1/2,j)
-            tau_zz[src.j, src.i] += src(m)
-            tau_xx[src.j, src.i] += src(m)
+            tau_zz[src.i, src.j] += src(m)
+            tau_xx[src.i, src.j] += src(m)
 
             v_x[] += self.b1[] * (
                     c1 * (tau_xx[] - tau_xx[])-
@@ -468,13 +469,12 @@ class GrilleFDTD:
                     c2 * (v_z[] - v_z[]))
 
             if showPlot and np.remainder(m, 20) == 0:
-                im1.set_data(v_x)
+                im1.set_data(v_x.T)
                 im1.set_clim(v_x.min(), v_x.max())
-                im2.set_data(v_z)
+                im2.set_data(v_z.T)
                 im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
-                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.\
-                                format(m*self.dt, m+1, nstep))
+                stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
                 plt.pause(0.01)
 
     def propageO24_pml(self, src, t, pml=None, a1=None, dirichlet=False,
@@ -501,19 +501,17 @@ class GrilleFDTD:
             trc_vx = np.zeros((nstep, ntrc))
             trc_vz = np.zeros((nstep, ntrc))
             # on arrondi à l'indice le plus proche
-            itrc = np.array(np.round((trc[:,0]-self.x[0])/self.dx),
-                            dtype=np.int64)
-            jtrc = np.array(np.round((trc[:,1]-self.z[0])/self.dx),
-                            dtype=np.int64)
+            itrc = np.array(np.round((trc[:, 0]-self.x[0])/self.dx), dtype=np.int64)
+            jtrc = np.array(np.round((trc[:, 1]-self.z[0])/self.dx), dtype=np.int64)
 
         c1 = 9./8.
         c2 = 1./24.
 
-        tau_xx = np.zeros((self.nz, self.nx))
-        tau_zz = np.zeros((self.nz, self.nx))
-        tau_xz = np.zeros((self.nz, self.nx))
-        v_x = np.zeros((self.nz, self.nx))
-        v_z = np.zeros((self.nz, self.nx))
+        tau_xx = np.zeros((self.nx, self.nz))
+        tau_zz = np.zeros((self.nx, self.nz))
+        tau_xz = np.zeros((self.nx, self.nz))
+        v_x = np.zeros((self.nx, self.nz))
+        v_z = np.zeros((self.nx, self.nz))
 
         if pml is not None:
             b1 = self.b1 * self.dx
@@ -533,74 +531,74 @@ class GrilleFDTD:
 
         if showPlot:
             fig, (ax1, ax2) = plt.subplots(ncols=2)
-            im1 = ax1.imshow(v_x)
-            im2 = ax2.imshow(v_z)
+            im1 = ax1.imshow(v_x.T)
+            im2 = ax2.imshow(v_z.T)
             stitle = fig.suptitle('')
             plt.show(block=False)
 
         for m in range(nstep):
 
             # applique la source au noeud (i+1/2,j)
-            tau_zz[src.j, src.i] += src(m)
-            tau_xx[src.j, src.i] += src(m)
+            tau_zz[src.i, src.j] += src(m)
+            tau_xx[src.i, src.j] += src(m)
 
             if pml is not None and a1 is not None:
                 # A1
 
                 # en haut
-                v_x[1,2:-2]=(1-a1.beta_h[2:-2]) * v_x[1,2:-2]+a1.beta_h[2:-2] * v_x[2,2:-2]
-                v_x[0,2:-2]=(1-a1.beta_h[2:-2]) * v_x[0,2:-2]+a1.beta_h[2:-2] * v_x[1,2:-2]
+                v_x[2:-2, 1]=(1-a1.beta_h[2:-2]) * v_x[2:-2, 1]+a1.beta_h[2:-2] * v_x[2:-2, 2]
+                v_x[2:-2, 0]=(1-a1.beta_h[2:-2]) * v_x[2:-2, 0]+a1.beta_h[2:-2] * v_x[2:-2, 1]
                 # en bas
-                v_x[-2,2:-2]=(1-a1.beta_b[2:-2]) * v_x[-2,2:-2]+a1.beta_b[2:-2] * v_x[-3,2:-2]
-                v_x[-1,2:-2]=(1-a1.beta_b[2:-2]) * v_x[-1,2:-2]+a1.beta_b[2:-2] * v_x[-2,2:-2]
+                v_x[2:-2, -2]=(1-a1.beta_b[2:-2]) * v_x[2:-2, -2]+a1.beta_b[2:-2] * v_x[2:-2, -3]
+                v_x[2:-2, -1]=(1-a1.beta_b[2:-2]) * v_x[2:-2, -1]+a1.beta_b[2:-2] * v_x[2:-2, -2]
                 # à droite
-                v_x[2:-2,-2]=(1-a1.alpha_d[2:-2]) * v_x[2:-2,-2]+a1.alpha_d[2:-2] * v_x[2:-2,-3]
-                v_x[2:-2,-1]=(1-a1.alpha_d[2:-2]) * v_x[2:-2,-1]+a1.alpha_d[2:-2] * v_x[2:-2,-2]
+                v_x[-2, 2:-2]=(1-a1.alpha_d[2:-2]) * v_x[-2, 2:-2]+a1.alpha_d[2:-2] * v_x[-3, 2:-2]
+                v_x[-1, 2:-2]=(1-a1.alpha_d[2:-2]) * v_x[-1, 2:-2]+a1.alpha_d[2:-2] * v_x[-2, 2:-2]
                 # à gauche
-                v_x[2:-2,1]=(1-a1.alpha_g[2:-2]) * v_x[2:-2,1]+a1.alpha_g[2:-2] * v_x[2:-2,2]
-                v_x[2:-2,0]=(1-a1.alpha_g[2:-2]) * v_x[2:-2,0]+a1.alpha_g[2:-2] * v_x[2:-2,1]
+                v_x[1, 2:-2]=(1-a1.alpha_g[2:-2]) * v_x[1, 2:-2]+a1.alpha_g[2:-2] * v_x[2, 2:-2]
+                v_x[0, 2:-2]=(1-a1.alpha_g[2:-2]) * v_x[0, 2:-2]+a1.alpha_g[2:-2] * v_x[1, 2:-2]
 
                 # PML -> update nodes that were not updated with A1
-                ddx = c1*(tau_xx[2:-2,2:-2]-tau_xx[2:-2,1:-3])-c2*(tau_xx[2:-2,3:-1]-tau_xx[2:-2,:-4])
-                ddz = c1*(tau_xz[2:-2,2:-2]-tau_xz[1:-3,2:-2])-c2*(tau_xz[3:-1,2:-2]-tau_xz[:-4,2:-2])
+                ddx = c1*(tau_xx[2:-2, 2:-2]-tau_xx[1:-3, 2:-2])-c2*(tau_xx[3:-1, 2:-2]-tau_xx[:-4, 2:-2])
+                ddz = c1*(tau_xz[2:-2, 2:-2]-tau_xz[2:-2, 1:-3])-c2*(tau_xz[2:-2, 3:-1]-tau_xz[2:-2, :-4])
 
-                pml.psi_txxx[2:-2,2:-2] = pml.bx[2:-2,2:-2] * pml.psi_txxx[2:-2,2:-2] + pml.cx[2:-2,2:-2] * ddx
-                pml.psi_txzz[2:-2,2:-2] = pml.bz[2:-2,2:-2] * pml.psi_txzz[2:-2,2:-2] + pml.cz[2:-2,2:-2] * ddz
+                pml.psi_txxx[2:-2, 2:-2] = pml.bx[2:-2, 2:-2] * pml.psi_txxx[2:-2, 2:-2] + pml.cx[2:-2, 2:-2] * ddx
+                pml.psi_txzz[2:-2, 2:-2] = pml.bz[2:-2, 2:-2] * pml.psi_txzz[2:-2, 2:-2] + pml.cz[2:-2, 2:-2] * ddz
 
-                ddx = pml.inux[2:-2,2:-2] * ddx + pml.psi_txxx[2:-2,2:-2]
-                ddz = pml.inuz[2:-2,2:-2] * ddz + pml.psi_txzz[2:-2,2:-2]
+                ddx = pml.inux[2:-2, 2:-2] * ddx + pml.psi_txxx[2:-2, 2:-2]
+                ddz = pml.inuz[2:-2, 2:-2] * ddz + pml.psi_txzz[2:-2, 2:-2]
 
-                v_x[2:-2,2:-2] += b1[2:-2,2:-2] * (ddx + ddz)
+                v_x[2:-2, 2:-2] += b1[2:-2, 2:-2] * (ddx + ddz)
 
             elif pml is not None:
-                ddx = c1*(tau_xx[2:-1,2:-1]-tau_xx[2:-1,1:-2])-c2*(tau_xx[2:-1,3:]-tau_xx[2:-1,:-3])
-                ddz = c1*(tau_xz[2:-1,2:-1]-tau_xz[1:-2,2:-1])-c2*(tau_xz[3:,2:-1]-tau_xz[:-3,2:-1])
+                ddx = c1*(tau_xx[2:-1, 2:-1]-tau_xx[1:-2, 2:-1])-c2*(tau_xx[3:, 2:-1]-tau_xx[:-3, 2:-1])
+                ddz = c1*(tau_xz[2:-1, 2:-1]-tau_xz[2:-1, 1:-2])-c2*(tau_xz[2:-1, 3:]-tau_xz[2:-1, :-3])
 
-                pml.psi_txxx[2:-1,2:-1] = pml.bx[2:-1,2:-1]*pml.psi_txxx[2:-1,2:-1] + pml.cx[2:-1,2:-1]*ddx
-                pml.psi_txzz[2:-1,2:-1] = pml.bz[2:-1,2:-1]*pml.psi_txzz[2:-1,2:-1] + pml.cz[2:-1,2:-1]*ddz
+                pml.psi_txxx[2:-1, 2:-1] = pml.bx[2:-1, 2:-1]*pml.psi_txxx[2:-1, 2:-1] + pml.cx[2:-1, 2:-1]*ddx
+                pml.psi_txzz[2:-1, 2:-1] = pml.bz[2:-1, 2:-1]*pml.psi_txzz[2:-1, 2:-1] + pml.cz[2:-1, 2:-1]*ddz
 
-                ddx = pml.inux[2:-1,2:-1]*ddx + pml.psi_txxx[2:-1,2:-1]
-                ddz = pml.inuz[2:-1,2:-1]*ddz + pml.psi_txzz[2:-1,2:-1]
+                ddx = pml.inux[2:-1, 2:-1]*ddx + pml.psi_txxx[2:-1, 2:-1]
+                ddz = pml.inuz[2:-1, 2:-1]*ddz + pml.psi_txzz[2:-1, 2:-1]
 
-                v_x[2:-1,2:-1] += b1[2:-1,2:-1]*(ddx + ddz)
+                v_x[2:-1, 2:-1] += b1[2:-1, 2:-1]*(ddx + ddz)
 
             elif a1 is not None:
                 # en haut
-                v_x[1,2:-2]=(1-a1.beta_h[2:-2]) * v_x[1,2:-2]+a1.beta_h[2:-2] * v_x[2,2:-2]
-                v_x[0,2:-2]=(1-a1.beta_h[2:-2]) * v_x[0,2:-2]+a1.beta_h[2:-2] * v_x[1,2:-2]
+                v_x[2:-2, 1]=(1-a1.beta_h[2:-2]) * v_x[2:-2, 1]+a1.beta_h[2:-2] * v_x[2:-2, 2]
+                v_x[2:-2, 0]=(1-a1.beta_h[2:-2]) * v_x[2:-2, 0]+a1.beta_h[2:-2] * v_x[2:-2, 1]
                 # en bas
-                v_x[-2,2:-2]=(1-a1.beta_b[2:-2]) * v_x[-2,2:-2]+a1.beta_b[2:-2] * v_x[-3,2:-2]
-                v_x[-1,2:-2]=(1-a1.beta_b[2:-2]) * v_x[-1,2:-2]+a1.beta_b[2:-2] * v_x[-2,2:-2]
+                v_x[2:-2, -2]=(1-a1.beta_b[2:-2]) * v_x[2:-2, -2]+a1.beta_b[2:-2] * v_x[2:-2, -3]
+                v_x[2:-2, -1]=(1-a1.beta_b[2:-2]) * v_x[2:-2, -1]+a1.beta_b[2:-2] * v_x[2:-2, -2]
                 # à droite
-                v_x[2:-2,-2]=(1-a1.alpha_d[2:-2]) * v_x[2:-2,-2]+a1.alpha_d[2:-2] * v_x[2:-2,-3]
-                v_x[2:-2,-1]=(1-a1.alpha_d[2:-2]) * v_x[2:-2,-1]+a1.alpha_d[2:-2] * v_x[2:-2,-2]
+                v_x[-2, 2:-2]=(1-a1.alpha_d[2:-2]) * v_x[-2, 2:-2]+a1.alpha_d[2:-2] * v_x[-3, 2:-2]
+                v_x[-1, 2:-2]=(1-a1.alpha_d[2:-2]) * v_x[-1, 2:-2]+a1.alpha_d[2:-2] * v_x[-2, 2:-2]
                 # à gauche
-                v_x[2:-2,1]=(1-a1.alpha_g[2:-2]) * v_x[2:-2,1]+a1.alpha_g[2:-2] * v_x[2:-2,2]
-                v_x[2:-2,0]=(1-a1.alpha_g[2:-2]) * v_x[2:-2,0]+a1.alpha_g[2:-2] * v_x[2:-2,1]
+                v_x[1, 2:-2]=(1-a1.alpha_g[2:-2]) * v_x[1, 2:-2]+a1.alpha_g[2:-2] * v_x[2, 2:-2]
+                v_x[0, 2:-2]=(1-a1.alpha_g[2:-2]) * v_x[0, 2:-2]+a1.alpha_g[2:-2] * v_x[1, 2:-2]
 
-                v_x[2:-2,2:-2] += b1[2:-2,2:-2] * (
-                    c1*(tau_xx[2:-2,2:-2]-tau_xx[2:-2,1:-3])-c2*(tau_xx[2:-2,3:-1]-tau_xx[2:-2,:-4])+
-                    c1*(tau_xz[2:-2,2:-2]-tau_xz[1:-3,2:-2])-c2*(tau_xz[3:-1,2:-2]-tau_xz[:-4,2:-2]))
+                v_x[2:-2, 2:-2] += b1[2:-2, 2:-2] * (
+                    c1*(tau_xx[2:-2, 2:-2]-tau_xx[1:-3, 2:-2])-c2*(tau_xx[3:-1, 2:-2]-tau_xx[:-4, 2:-2])+
+                    c1*(tau_xz[2:-2, 2:-2]-tau_xz[2:-2, 1:-3])-c2*(tau_xz[2:-2, 3:-1]-tau_xz[2:-2, :-4]))
 
             else:
                 v_x[] += b1[] * (
@@ -608,65 +606,65 @@ class GrilleFDTD:
                         c2 * (tau_xx[] -tau_xx[])+
                         c1 * (tau_xz[]-tau_xz[])-
                         c2 * (tau_xz[] -tau_xz[]))
-
+            
             # Vz
             if pml is not None and a1 is not None:
                 # A1
                 # en haut
-                v_z[1,2:-2]=(1-a1.alpha_h[2:-2]) * v_z[1,2:-2]+a1.alpha_h[2:-2] * v_z[2,2:-2]
-                v_z[0,2:-2]=(1-a1.alpha_h[2:-2]) * v_z[0,2:-2]+a1.alpha_h[2:-2] * v_z[1,2:-2]
+                v_z[2:-2, 1]=(1-a1.alpha_h[2:-2]) * v_z[2:-2, 1]+a1.alpha_h[2:-2] * v_z[2:-2, 2]
+                v_z[2:-2, 0]=(1-a1.alpha_h[2:-2]) * v_z[2:-2, 0]+a1.alpha_h[2:-2] * v_z[2:-2, 1]
                 # en bas
-                v_z[-2,2:-2]=(1-a1.alpha_b[2:-2]) * v_z[-2,2:-2]+a1.alpha_b[2:-2] * v_z[-3,2:-2]
-                v_z[-1,2:-2]=(1-a1.alpha_b[2:-2]) * v_z[-1,2:-2]+a1.alpha_b[2:-2] * v_z[-2,2:-2]
+                v_z[2:-2, -2]=(1-a1.alpha_b[2:-2]) * v_z[2:-2, -2]+a1.alpha_b[2:-2] * v_z[2:-2, -3]
+                v_z[2:-2, -1]=(1-a1.alpha_b[2:-2]) * v_z[2:-2, -1]+a1.alpha_b[2:-2] * v_z[2:-2, -2]
                 # à droite
-                v_z[2:-2,-2]=(1-a1.beta_d[2:-2]) * v_z[2:-2,-2]+a1.beta_d[2:-2] * v_z[2:-2,-3]
-                v_z[2:-2,-1]=(1-a1.beta_d[2:-2]) * v_z[2:-2,-1]+a1.beta_d[2:-2] * v_z[2:-2,-2]
+                v_z[-2, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[-2, 2:-2]+a1.beta_d[2:-2] * v_z[-3, 2:-2]
+                v_z[-1, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[-1, 2:-2]+a1.beta_d[2:-2] * v_z[-2, 2:-2]
                 # à gauche
-                v_z[2:-2,1]=(1-a1.beta_d[2:-2]) * v_z[2:-2,1]+a1.beta_d[2:-2] * v_z[2:-2,2]
-                v_z[2:-2,0]=(1-a1.beta_d[2:-2]) * v_z[2:-2,0]+a1.beta_d[2:-2] * v_z[2:-2,1]
+                v_z[1, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[1, 2:-2]+a1.beta_d[2:-2] * v_z[2, 2:-2]
+                v_z[0, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[0, 2:-2]+a1.beta_d[2:-2] * v_z[1, 2:-2]
 
                 # PML
-                ddx = c1*(tau_xz[2:-2,3:-1]-tau_xz[2:-2,2:-2])-c2*(tau_xz[2:-2,4:]-tau_xz[2:-2,1:-3])
-                ddz = c1*(tau_zz[3:-1,2:-2]-tau_zz[2:-2,2:-2])-c2*(tau_zz[4:,2:-2]-tau_zz[1:-3,2:-2])
+                ddx = c1*(tau_xz[3:-1, 2:-2]-tau_xz[2:-2, 2:-2])-c2*(tau_xz[4:, 2:-2]-tau_xz[1:-3, 2:-2])
+                ddz = c1*(tau_zz[2:-2, 3:-1]-tau_zz[2:-2, 2:-2])-c2*(tau_zz[2:-2, 4:]-tau_zz[2:-2, 1:-3])
 
-                pml.psi_txzx[2:-2,2:-2] = pml.bx2[2:-2,2:-2] * pml.psi_txzx[2:-2,2:-2] + pml.cx2[2:-2,2:-2] * ddx
-                pml.psi_tzzz[2:-2,2:-2] = pml.bz2[2:-2,2:-2] * pml.psi_tzzz[2:-2,2:-2] + pml.cz2[2:-2,2:-2] * ddz
+                pml.psi_txzx[2:-2, 2:-2] = pml.bx2[2:-2, 2:-2] * pml.psi_txzx[2:-2, 2:-2] + pml.cx2[2:-2, 2:-2] * ddx
+                pml.psi_tzzz[2:-2, 2:-2] = pml.bz2[2:-2, 2:-2] * pml.psi_tzzz[2:-2, 2:-2] + pml.cz2[2:-2, 2:-2] * ddz
 
-                ddx = pml.inux2[2:-2,2:-2] * ddx + pml.psi_txzx[2:-2,2:-2]
-                ddz = pml.inuz2[2:-2,2:-2] * ddz + pml.psi_tzzz[2:-2,2:-2]
+                ddx = pml.inux2[2:-2, 2:-2] * ddx + pml.psi_txzx[2:-2, 2:-2]
+                ddz = pml.inuz2[2:-2, 2:-2] * ddz + pml.psi_tzzz[2:-2, 2:-2]
 
-                v_z[2:-2,2:-2] += b2[2:-2,2:-2] * (ddx + ddz)
+                v_z[2:-2, 2:-2] += b2[2:-2, 2:-2] * (ddx + ddz)
 
             elif pml is not None:
-                ddx = c1*(tau_xz[1:-2,2:-1]-tau_xz[1:-2,1:-2])-c2*(tau_xz[1:-2,3:]-tau_xz[1:-2,:-3])
-                ddz = c1*(tau_zz[2:-1,1:-2]-tau_zz[1:-2,1:-2])-c2*(tau_zz[3:,1:-2]-tau_zz[:-3,1:-2])
+                ddx = c1*(tau_xz[2:-1, 1:-2]-tau_xz[1:-2, 1:-2])-c2*(tau_xz[3:, 1:-2]-tau_xz[:-3, 1:-2])
+                ddz = c1*(tau_zz[1:-2, 2:-1]-tau_zz[1:-2, 1:-2])-c2*(tau_zz[1:-2, 3:]-tau_zz[1:-2, :-3])
 
-                pml.psi_txzx[1:-2,1:-2] = pml.bx2[1:-2,1:-2]*pml.psi_txzx[1:-2,1:-2] + pml.cx2[1:-2,1:-2]*ddx
+                pml.psi_txzx[1:-2, 1:-2] = pml.bx2[1:-2, 1:-2]*pml.psi_txzx[1:-2, 1:-2] + pml.cx2[1:-2, 1:-2]*ddx
 
-                pml.psi_tzzz[1:-2,1:-2] = pml.bz2[1:-2,1:-2]*pml.psi_tzzz[1:-2,1:-2] + pml.cz2[1:-2,1:-2]*ddz
+                pml.psi_tzzz[1:-2, 1:-2] = pml.bz2[1:-2, 1:-2]*pml.psi_tzzz[1:-2, 1:-2] + pml.cz2[1:-2, 1:-2]*ddz
 
-                ddx = pml.inux2[1:-2,1:-2]*ddx + pml.psi_txzx[1:-2,1:-2]
-                ddz = pml.inuz2[1:-2,1:-2]*ddz + pml.psi_tzzz[1:-2,1:-2]
+                ddx = pml.inux2[1:-2, 1:-2]*ddx + pml.psi_txzx[1:-2, 1:-2]
+                ddz = pml.inuz2[1:-2, 1:-2]*ddz + pml.psi_tzzz[1:-2, 1:-2]
 
-                v_z[1:-2,1:-2] += b2[1:-2,1:-2]*(ddx + ddz)
+                v_z[1:-2, 1:-2] += b2[1:-2, 1:-2]*(ddx + ddz)
 
             elif a1 is not None:
                 # en haut
-                v_z[1,2:-2]=(1-a1.alpha_h[2:-2]) * v_z[1,2:-2]+a1.alpha_h[2:-2] * v_z[2,2:-2]
-                v_z[0,2:-2]=(1-a1.alpha_h[2:-2]) * v_z[0,2:-2]+a1.alpha_h[2:-2] * v_z[1,2:-2]
+                v_z[2:-2, 1]=(1-a1.alpha_h[2:-2]) * v_z[2:-2, 1]+a1.alpha_h[2:-2] * v_z[2:-2, 2]
+                v_z[2:-2, 0]=(1-a1.alpha_h[2:-2]) * v_z[2:-2, 0]+a1.alpha_h[2:-2] * v_z[2:-2, 1]
                 # en bas
-                v_z[-2,2:-2]=(1-a1.alpha_b[2:-2]) * v_z[-2,2:-2]+a1.alpha_b[2:-2] * v_z[-3,2:-2]
-                v_z[-1,2:-2]=(1-a1.alpha_b[2:-2]) * v_z[-1,2:-2]+a1.alpha_b[2:-2] * v_z[-2,2:-2]
+                v_z[2:-2, -2]=(1-a1.alpha_b[2:-2]) * v_z[2:-2, -2]+a1.alpha_b[2:-2] * v_z[2:-2, -3]
+                v_z[2:-2, -1]=(1-a1.alpha_b[2:-2]) * v_z[2:-2, -1]+a1.alpha_b[2:-2] * v_z[2:-2, -2]
                 # à droite
-                v_z[2:-2,-2]=(1-a1.beta_d[2:-2]) * v_z[2:-2,-2]+a1.beta_d[2:-2] * v_z[2:-2,-3]
-                v_z[2:-2,-1]=(1-a1.beta_d[2:-2]) * v_z[2:-2,-1]+a1.beta_d[2:-2] * v_z[2:-2,-2]
+                v_z[-2, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[-2, 2:-2]+a1.beta_d[2:-2] * v_z[-3, 2:-2]
+                v_z[-1, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[-1, 2:-2]+a1.beta_d[2:-2] * v_z[-2, 2:-2]
                 # à gauche
-                v_z[2:-2,1]=(1-a1.beta_d[2:-2]) * v_z[2:-2,1]+a1.beta_d[2:-2] * v_z[2:-2,2]
-                v_z[2:-2,0]=(1-a1.beta_d[2:-2]) * v_z[2:-2,0]+a1.beta_d[2:-2] * v_z[2:-2,1]
+                v_z[1, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[1, 2:-2]+a1.beta_d[2:-2] * v_z[2, 2:-2]
+                v_z[0, 2:-2]=(1-a1.beta_d[2:-2]) * v_z[0, 2:-2]+a1.beta_d[2:-2] * v_z[1, 2:-2]
 
-                v_z[2:-2,2:-2] += b2[2:-2,2:-2] * (
-                    c1*(tau_xz[2:-2,3:-1]-tau_xz[2:-2,2:-2])-c2*(tau_xz[2:-2,4:]-tau_xz[2:-2,1:-3])+
-                    c1*(tau_zz[3:-1,2:-2]-tau_zz[2:-2,2:-2])-c2*(tau_zz[4:,2:-2]-tau_zz[1:-3,2:-2]))
+                v_z[2:-2, 2:-2] += b2[2:-2, 2:-2] * (
+                    c1*(tau_xz[3:-1, 2:-2]-tau_xz[2:-2, 2:-2])-c2*(tau_xz[4:, 2:-2]-tau_xz[1:-3, 2:-2])+
+                    c1*(tau_zz[2:-2, 3:-1]-tau_zz[2:-2, 2:-2])-c2*(tau_zz[2:-2, 4:]-tau_zz[2:-2, 1:-3]))
 
             else:
                 v_z[] += b2[] * (
@@ -680,46 +678,42 @@ class GrilleFDTD:
                     trc_vx[m, nt] = v_x[jtrc[nt], itrc[nt]]
                     trc_vz[m, nt] = v_z[jtrc[nt], itrc[nt]]
 
-            # source alternative
-            #v_z[src.j, src.i] += dx * b2[src.j, src.i] * src(m)
-            # v_x[src.j, src.i] += dx * b1[src.j, src.i] * src(m)
-
             if dirichlet is True:
                 # Conditions de Dirichlet: on prend 2 rangées à cause de l'ordre 4 de
                 # l'opérateur spatial
-                v_x[:,:2]  = 0.0
-                v_x[:,-2:] = 0.0
-                v_x[:2,:]  = 0.0
-                v_x[-2:,:] = 0.0
-                v_z[:,:2]  = 0.0
-                v_z[:,-2:] = 0.0
-                v_z[:2,:]  = 0.0
-                v_z[-2:,:] = 0.0
+                v_x[:2, :]  = 0.0
+                v_x[-2:, :] = 0.0
+                v_x[:, :2]  = 0.0
+                v_x[:, -2:] = 0.0
+                v_z[:2, :]  = 0.0
+                v_z[-2:, :] = 0.0
+                v_z[:, :2]  = 0.0
+                v_z[:, -2:] = 0.0
 
             # Contraintes
             if pml is not None:
-                ddx = c1*(v_x[2:-1,2:-1]-v_x[2:-1,1:-2])-c2*(v_x[2:-1,3:]-v_x[2:-1,:-3])
-                ddz = c1*(v_z[2:-1,1:-2]-v_z[1:-2,1:-2])-c2*(v_z[3:,1:-2]-v_z[:-3,1:-2])
+                ddx = c1*(v_x[2:-1, 2:-1]-v_x[1:-2, 2:-1])-c2*(v_x[3:, 2:-1]-v_x[:-3, 2:-1])
+                ddz = c1*(v_z[1:-2, 2:-1]-v_z[1:-2, 1:-2])-c2*(v_z[1:-2, 3:]-v_z[1:-2, :-3])
 
-                pml.psi_vxx[2:-1,1:-2] = pml.bx2[2:-1,1:-2]*pml.psi_vxx[2:-1,1:-2] + pml.cx2[2:-1,1:-2]*ddx
-                pml.psi_vzz[2:-1,1:-2] = pml.bz[2:-1,1:-2]*pml.psi_vzz[2:-1,1:-2] + pml.cz[2:-1,1:-2]*ddz
+                pml.psi_vxx[1:-2, 2:-1] = pml.bx2[1:-2, 2:-1]*pml.psi_vxx[1:-2, 2:-1] + pml.cx2[1:-2, 2:-1]*ddx
+                pml.psi_vzz[1:-2, 2:-1] = pml.bz[1:-2, 2:-1]*pml.psi_vzz[1:-2, 2:-1] + pml.cz[1:-2, 2:-1]*ddz
 
-                ddx = pml.inux2[2:-1,1:-2]*ddx + pml.psi_vxx[2:-1,1:-2]
-                ddz = pml.inuz[2:-1,1:-2]*ddz + pml.psi_vzz[2:-1,1:-2]
+                ddx = pml.inux2[1:-2, 2:-1]*ddx + pml.psi_vxx[1:-2, 2:-1]
+                ddz = pml.inuz[1:-2, 2:-1]*ddz + pml.psi_vzz[1:-2, 2:-1]
 
-                tau_xx[2:-1,1:-2] += lm[2:-1,1:-2]*ddx + ll[2:-1,1:-2]*ddz
-                tau_zz[2:-1,1:-2] += lm[2:-1,1:-2]*ddz + ll[2:-1,1:-2]*ddx
+                tau_xx[1:-2, 2:-1] += lm[1:-2, 2:-1]*ddx + ll[1:-2, 2:-1]*ddz
+                tau_zz[1:-2, 2:-1] += lm[1:-2, 2:-1]*ddz + ll[1:-2, 2:-1]*ddx
 
-                ddx = c1*(v_z[1:-2,2:-1]-v_z[1:-2,1:-2])-c2*(v_z[1:-2,3:]-v_z[1:-2,:-3])
-                ddz = c1*(v_x[2:-1,2:-1]-v_x[1:-2,2:-1])-c2*(v_x[3:,2:-1]-v_x[:-3,2:-1])
+                ddx = c1*(v_z[2:-1, 1:-2]-v_z[1:-2, 1:-2])-c2*(v_z[3:, 1:-2]-v_z[:-3, 1:-2])
+                ddz = c1*(v_x[2:-1, 2:-1]-v_x[2:-1, 1:-2])-c2*(v_x[2:-1, 3:]-v_x[2:-1, :-3])
 
-                pml.psi_vzx[1:-2,2:-1] = pml.bx[1:-2,2:-1]*pml.psi_vzx[1:-2,2:-1] + pml.cx[1:-2,2:-1]*ddx
-                pml.psi_vxz[1:-2,2:-1] = pml.bz2[1:-2,2:-1]*pml.psi_vxz[1:-2,2:-1] + pml.cz2[1:-2,2:-1]*ddz
+                pml.psi_vzx[2:-1, 1:-2] = pml.bx[2:-1, 1:-2]*pml.psi_vzx[2:-1, 1:-2] + pml.cx[2:-1, 1:-2]*ddx
+                pml.psi_vxz[2:-1, 1:-2] = pml.bz2[2:-1, 1:-2]*pml.psi_vxz[2:-1, 1:-2] + pml.cz2[2:-1, 1:-2]*ddz
 
-                ddx = pml.inux[1:-2,2:-1]*ddx + pml.psi_vzx[1:-2,2:-1]
-                ddz = pml.inuz2[1:-2,2:-1]*ddz + pml.psi_vxz[1:-2,2:-1]
+                ddx = pml.inux[2:-1, 1:-2]*ddx + pml.psi_vzx[2:-1, 1:-2]
+                ddz = pml.inuz2[2:-1, 1:-2]*ddz + pml.psi_vxz[2:-1, 1:-2]
 
-                tau_xz[1:-2,2:-1] += mm[1:-2,2:-1]*(ddx + ddz)
+                tau_xz[2:-1, 1:-2] += mm[2:-1, 1:-2]*(ddx + ddz)
 
             else:
                 tau_xx[] += lm[] * (
@@ -727,11 +721,11 @@ class GrilleFDTD:
                         c2 * (v_x[] - v_x[])) + \
                         ll[] * (
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[3:,1:-2] - v_z[]))
+                        c2 * (v_z[1:-2, 3:]   - v_z[]))
 
                 tau_zz[] += lm[] * (
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[3:,1:-2] - v_z[])) + \
+                        c2 * (v_z[1:-2, 3:] - v_z[])) + \
                         ll[] * (
                         c1 * (v_x[] - v_x[]) -
                         c2 * (v_x[] - v_x[]))
@@ -740,7 +734,7 @@ class GrilleFDTD:
                         c1 * (v_x[] - v_x[]) -
                         c2 * (v_x[] - v_x[]) +
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[] - v_z[1:-2,:-3]))
+                        c2 * (v_z[] - v_z[:-3, 1:-2]))
 
             if calcE:
                 tmp = 0.5 * (rho1 * v_x**2 + rho2 * v_z**2)
@@ -751,9 +745,9 @@ class GrilleFDTD:
                 E[m] = np.sum(tmp[ind])
 
             if showPlot and np.remainder(m, 20) == 0:
-                im1.set_data(v_x)
+                im1.set_data(v_x.T)
                 im1.set_clim(v_x.min(), v_x.max())
-                im2.set_data(v_z)
+                im2.set_data(v_z.T)
                 im2.set_clim(v_z.min(), v_z.max())
                 fig.canvas.draw()
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
@@ -832,8 +826,8 @@ class Ricker(Source):
 
 if __name__ == '__main__':
 
-    checkProp = False
-    timeForLoop = True
+    checkProp = True
+    timeFor = True
 
     if checkProp:
         dx = 50.0
@@ -842,9 +836,9 @@ if __name__ == '__main__':
 
         g = GrilleFDTD(x, z)
 
-        Vp = 4000.0 + np.zeros((z.size, x.size))
+        Vp = 4000.0 + np.zeros((x.size, z.size))
         Vp[1, 1] = 5000.0
-        Vp[1, 2] = 3000.0
+        Vp[2, 1] = 3000.0
         sigma = 0.25              # coeff Poisson
         Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
         rho = 2670.0 + np.zeros(Vp.shape)
@@ -855,70 +849,76 @@ if __name__ == '__main__':
         g.defProp(Vp, Vs, rho, dt)
 
         plt.figure()
-        plt.imshow(g.b1)
-        plt.title('b1')
+        plt.imshow(g.b1.T)
+        plt.title('b1', fontsize=16)
         plt.gca().set_aspect('equal')
         plt.gca().autoscale(tight=True)
         plt.colorbar()
+        plt.tight_layout()
         plt.show()
 
         plt.figure()
-        plt.imshow(g.b2)
-        plt.title('b2')
+        plt.imshow(g.b2.T)
+        plt.title('b2', fontsize=16)
         plt.gca().set_aspect('equal')
         plt.gca().autoscale(tight=True)
         plt.colorbar()
+        plt.tight_layout()
         plt.show()
 
         plt.figure()
-        plt.imshow(g.lm)
-        plt.title('lm')
+        plt.imshow(g.lm.T)
+        plt.title('lm', fontsize=16)
         plt.gca().set_aspect('equal')
         plt.gca().autoscale(tight=True)
         plt.colorbar()
+        plt.tight_layout()
         plt.show()
 
         plt.figure()
-        plt.imshow(g.l)
-        plt.title('l')
+        plt.imshow(g.l.T)
+        plt.title('l', fontsize=16)
         plt.gca().set_aspect('equal')
         plt.gca().autoscale(tight=True)
         plt.colorbar()
+        plt.tight_layout()
         plt.show()
 
         plt.figure()
-        plt.imshow(g.m)
-        plt.title('m')
+        plt.imshow(g.m.T)
+        plt.title('m', fontsize=16)
         plt.gca().set_aspect('equal')
         plt.gca().autoscale(tight=True)
         plt.colorbar()
+        plt.tight_layout()
         plt.show()
 
-    if timeForLoop:
+    if timeFor:
         dx = 50.0
         x = np.arange(0.0, 20000.1, dx)
         z = np.arange(0.0, 15000.1, dx)
 
         g = GrilleFDTD(x, z)
 
-        Vp = 4000.0 + np.zeros((z.size, x.size))
-        Vp[200:,:] = 5000.0
+        Vp = 4000.0 + np.zeros((x.size, z.size))
+        Vp[:, 200:] = 5000.0
         sigma = 0.25              # coeff Poisson
         Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
         rho = 2670.0 + np.zeros(Vp.shape)
-        rho[200:,:] = 2700.0
+        rho[:, 200:] = 2700.0
         dt = 0.006
 
         g.defProp(Vp, Vs, rho, dt)
 
         src = Ricker(200, 150, 5, dt)
 
-        t = 0.5
+        t = 0.25
 
         tic = time.time()
         g.propage0(src, t, True)
         t0 = time.time() - tic
         print(t0)
+        t = 2.5
         tic = time.time()
         g.propage(src, t, True)
         t = time.time() - tic

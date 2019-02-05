@@ -536,7 +536,7 @@ class GrilleVF:
         # Z
         # -------------------------------------------------------------
 
-        # Face correspondant à y_min
+        # Face correspondant à z_min
         ind =
         f[ind] += B0[2] / self.hz[0]
         if len(chi)>0:
@@ -555,7 +555,7 @@ class GrilleVF:
             B = np.kron(1.e-7*mm/(rm*rm*rm), np.ones((3,1))) * mtmp
             g[ind[ind2]] += B[2,ind2] / self.hz[0]
 
-        # Face correspondant à y_max
+        # Face correspondant à z_max
         ind =
         f[ind] -= B0[2] / self.hz[-1]
         if len(chi)>0:
@@ -638,24 +638,24 @@ if __name__ == '__main__':
     x = [1, 2, 3, 3.5]
     y = [1, 2, 3, 4, 5]
     z = np.arange(6)
-    g = GrilleVF(x, y, z)
+    gvf = GrilleVF(x, y, z)
 
-    print(g.nc, g.dx)
+    print(gvf.nc, gvf.dx)
 
-    ind = g.ind([1,2],2,[3,0])
+    ind = gvf.ind([1,2],2,[3,0])
     print(ind)
 
     B0 = np.array([1., 2., 3.])
-    chi = np.zeros((g.nc,))
-    chi[g.ind(2,2,3)] = 1.0
+    chi = np.zeros((gvf.nc,))
+    chi[gvf.ind(2,2,3)] = 1.0
     mu0 = 4 * math.pi * 1.e-7;
     mu = mu0 * (1.+chi)
-    D = g.fabrique_D()
-    M = g.fabrique_M(mu)
-    G = g.fabrique_G()
-    q = g.fabrique_cf(B0)
-    q,f = g.fabrique_cf(B0, chi)
-    q = g.fabrique_cf(B0, chi)
+    D = gvf.fabrique_D()
+    M = gvf.fabrique_M(mu)
+    G = gvf.fabrique_G()
+    f = gvf.fabrique_cf(B0)
+    f,g = gvf.fabrique_cf(B0, chi)
+    q = gvf.fabrique_cf(B0, chi)
 
 
 
@@ -665,7 +665,7 @@ if __name__ == '__main__':
     plt.title('D')
     plt.show()
 
-    plt.plot(g.fabrique_q(B0))
+    plt.plot(gvf.fabrique_q(B0))
     plt.title('q')
     plt.show()
 

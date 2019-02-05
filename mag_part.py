@@ -284,7 +284,7 @@ class GrilleVF:
 
         # assemblage
 
-        return sp.hstack((Dx, Dy, Dz))
+        return sp.hstack((Dx, Dy, Dz)).tocsr()
 
     def fabrique_q(self, B0):
         """
@@ -363,7 +363,8 @@ class GrilleVF:
         # assemblage
 
         return sp.coo_matrix((np.hstack((Mx, My, Mz)),
-                                (np.arange(self.nf),np.arange(self.nf))))
+                                        (np.arange(self.nf),
+                                         np.arange(self.nf)))).tocsr()
 
     def fabrique_G(self):
 
@@ -408,7 +409,7 @@ class GrilleVF:
         Gz = sp.coo_matrix((s,(i,j)))
 
         # assemblage
-        return sp.vstack((Gx, Gy, Gz))
+        return sp.vstack((Gx, Gy, Gz)).tocsr()
 
     def fabrique_cf(self, B0, chi=[]):
         nout = nargout()

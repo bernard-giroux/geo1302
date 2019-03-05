@@ -477,8 +477,26 @@ class GrilleFDTD:
                 stitle.set_text('t = {0:6.3f} (it no {1:d}/{2:d})'.format(m*self.dt, m+1, nstep))
                 plt.pause(0.01)
 
-    def propageO24_pml(self, src, t, pml=None, a1=None, dirichlet=False,
+    def propageO24_pml(self, src, t, pml=None, a1=None,
                        trc=[], calcE=False, showPlot=False):
+        '''
+        Modélisation de la propagation
+
+        Paramètres
+        ----------
+        src   : instance d'une Source (Impulsion, DeriveeImpulsion ou Ricker)
+        t     : durée de la propagation
+        pml   : objet CPML
+        a1    : object A1
+        trc   : coordonnées (x, z) des traces à enregistrer (array ntrc x 2)
+        calcE : booléen indiquant si l'énergie doit être calculée sur le domaine
+        showPlot : booléan indiquant si l'affichage des instantanés est requis
+
+        Retourne
+        --------
+        trc_vx, trc_vz : si ntrc > 0
+        E              : si calcE == True
+        '''
         nstep = 1 + int(t/self.dt)
 
         if calcE is True:
@@ -677,18 +695,6 @@ class GrilleFDTD:
                 for nt in np.arange(ntrc):
                     trc_vx[m, nt] = v_x[jtrc[nt], itrc[nt]]
                     trc_vz[m, nt] = v_z[jtrc[nt], itrc[nt]]
-
-            if dirichlet is True:
-                # Conditions de Dirichlet: on prend 2 rangées à cause de l'ordre 4 de
-                # l'opérateur spatial
-                v_x[:2, :]  = 0.0
-                v_x[-2:, :] = 0.0
-                v_x[:, :2]  = 0.0
-                v_x[:, -2:] = 0.0
-                v_z[:2, :]  = 0.0
-                v_z[-2:, :] = 0.0
-                v_z[:, :2]  = 0.0
-                v_z[:, -2:] = 0.0
 
             # Contraintes
             if pml is not None:

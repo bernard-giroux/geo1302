@@ -63,9 +63,9 @@ class CPML:
         """
         # à (i,j)
 
-        xp = 
+        xp =
         d0 = (self.nd+1) * np.log(1/self.Rc)*V / (2*self.N*dx)
-        dx_pml = 
+        dx_pml =
 
         nu = 1. + (self.nu0-1.) * (xp / (self.N*dx))**self.nnu
         alpha_pml = self.alpha0*(1. - (xp / (self.N*dx))**self.nalpha)
@@ -79,8 +79,8 @@ class CPML:
         d[] =
 
         alpha = np.zeros((nx, nz))
-        alpha[] = 
-        alpha[] = 
+        alpha[] =
+        alpha[] =
 
         self.bx = np.exp(-(d * self.inux + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -285,7 +285,7 @@ class GrilleFDTD:
         z = self.z.reshape(-1, 1)
 
         xi = np.hstack((
-            
+
         lambda2 =
         mu2 =
         lambda2 = lambda2.reshape(self.nx, self.nz)
@@ -302,12 +302,12 @@ class GrilleFDTD:
         z[-1] = z[-2]
 
         xi = np.hstack((
-            
+
         mu2 =
         mu2 = mu2.reshape(self.nx, self.nz)
 
         self.m = dt / self.dx * mu2
-            
+
     @jit
     def propage0(self, src, t, showPlot=False):
 
@@ -606,7 +606,7 @@ class GrilleFDTD:
                         c2 * (tau_xx[] -tau_xx[])+
                         c1 * (tau_xz[]-tau_xz[])-
                         c2 * (tau_xz[] -tau_xz[]))
-            
+
             # Vz
             if pml is not None and a1 is not None:
                 # A1
@@ -669,9 +669,9 @@ class GrilleFDTD:
             else:
                 v_z[] += b2[] * (
                         c1 * (tau_xz[] - tau_xz[])-
-                        c2 * (tau_xz[] - tau_xz[1:-2,:-3])+
+                        c2 * (tau_xz[] - tau_xz[])+
                         c1 * (tau_zz[] - tau_zz[])-
-                        c2 * (tau_zz[3:,1:-2] - tau_zz[]))
+                        c2 * (tau_zz[] - tau_zz[]))
 
             if len(trc) > 0:
                 for nt in np.arange(ntrc):
@@ -721,11 +721,11 @@ class GrilleFDTD:
                         c2 * (v_x[] - v_x[])) + \
                         ll[] * (
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[1:-2, 3:]   - v_z[]))
+                        c2 * (v_z[]   - v_z[]))
 
                 tau_zz[] += lm[] * (
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[1:-2, 3:] - v_z[])) + \
+                        c2 * (v_z[] - v_z[])) + \
                         ll[] * (
                         c1 * (v_x[] - v_x[]) -
                         c2 * (v_x[] - v_x[]))
@@ -734,7 +734,7 @@ class GrilleFDTD:
                         c1 * (v_x[] - v_x[]) -
                         c2 * (v_x[] - v_x[]) +
                         c1 * (v_z[] - v_z[]) -
-                        c2 * (v_z[] - v_z[:-3, 1:-2]))
+                        c2 * (v_z[] - v_z[]))
 
             if calcE:
                 tmp = 0.5 * (rho1 * v_x**2 + rho2 * v_z**2)

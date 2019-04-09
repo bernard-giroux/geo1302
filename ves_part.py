@@ -197,3 +197,14 @@ class Sondage:
                     if dfit < kr:
                         return m
         return m
+
+
+if __name__ == '__main__':
+
+    filename = 'ab2.dat'
+    data = np.loadtxt(filename)
+
+    sondage = Sondage(data)
+    m0 = np.array([20.0, 20.0, 20.0, 10.0, 15.0])
+    m = sondage.inv(m0, showfig=True)
+    print(m)

@@ -11,8 +11,6 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spl
 
-import cgrid2d
-
 
 def derivative(nx, nz, dx, dz, order):
     """
@@ -503,107 +501,6 @@ def sirt(A, b, tolx, maxiter, dense=True):
     print('Max iterations exceeded.')
     return x
 
-def derivative(nx, nz, dx, dz, order):
-    """
-    Compute spatial derivative operators for grid _cells_
-
-    For 1st order:
-        forward operator is (u_{i+1} - u_i)/dx
-        centered operator is (u_{i+1} - u_{i-1})/(2dx)
-        backward operator is (u_i - u_{i-1})/dx
-
-    For 2nd order:
-        forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
-        centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
-        backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
-    """
-
-    if order == 1:
-
-        # forward operator is (u_{i+1} - u_i)/dx
-        # centered operator is (u_{i+1} - u_{i-1})/(2dx)
-        # backward operator is (u_i - u_{i-1})/dx
-
-        idx = 1 / dx
-        idz = 1 / dz
-
-        i = np.kron(np.arange(nx * nz), np.ones((2, )))
-        j = np.zeros((nz * nx * 2, ))
-        v = np.zeros((nz * nx * 2, ))
-
-        jj = np.vstack((np.arange(nz), nz + np.arange(nz))).T
-        jj = jj.flatten()
-        j[:2 * nz] = jj
-        vd = idx * np.tile(np.array([-1, 1]), (nz, ))
-        v[:2 * nz] = vd
-
-        jj = np.vstack((-nz + np.arange(nz), nz + np.arange(nz))).T
-        jj = jj.flatten()
-        for n in range(1, nx - 1):
-            j[n * 2 * nz:(n + 1) * 2 * nz] = n * nz + jj
-            v[n * 2 * nz:(n + 1) * 2 * nz] = 0.5 * vd
-
-        jj = np.vstack((-nz + np.arange(nz), np.arange(nz))).T
-        jj = jj.flatten()
-        j[(nx - 1) * 2 * nz:nx * 2 * nz] = (nx - 1) * nz + jj
-        v[(nx - 1) * 2 * nz:nx * 2 * nz] = vd
-
-        Dx = sp.csr_matrix((v, (i, j)))
-
-        jj = np.vstack((np.hstack((0, np.arange(nz - 1))),
-                        np.hstack((np.arange(1, nz), nz - 1)))).T
-        jj = jj.flatten()
-        vd = idz * np.hstack((np.array([-1, 1]),
-                              np.tile(np.array([-0.5, 0.5]), (nz - 2,)),
-                              np.array([-1, 1])))
-
-        for n in range(nx):
-            j[n * 2 * nz:(n + 1) * 2 * nz] = n * nz + jj
-            v[n * 2 * nz:(n + 1) * 2 * nz] = vd
-
-        Dz = sp.csr_matrix((v, (i, j)))
-    else:  # 2nd order
-
-        # forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
-        # centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
-        # backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
-
-        idx2 = 1 / (dx * dx)
-        idz2 = 1 / (dz * dz)
-
-        i = np.kron(np.arange(nx * nz), np.ones((3, )))
-        j = np.zeros((nz * nx * 3, ))
-        v = np.zeros((nz * nx * 3, ))
-
-        jj = np.vstack((np.arange(nz), nz + np.arange(nz),
-                        2 * nz + np.arange(nz))).T
-        jj = jj.flatten()
-        j[:3 * nz] = jj
-        vd = idx2 * np.tile(np.array([1.0, -2.0, 1.0]), (nz, ))
-        v[:3 * nz] = vd
-
-        for n in range(1, nx - 1):
-            j[n * 3 * nz:(n + 1) * 3 * nz] = (n - 1) * nz + jj
-            v[n * 3 * nz:(n + 1) * 3 * nz] = vd
-
-        j[(nx - 1) * 3 * nz:nx * 3 * nz] = (nx - 3) * nz + jj
-        v[(nx - 1) * 3 * nz:nx * 3 * nz] = vd
-
-        Dx = sp.csr_matrix((v, (i, j)))
-
-        jj = np.vstack((np.hstack((0, np.arange(nz - 2), nz - 3)),
-                        np.hstack((1, np.arange(1, nz - 1), nz - 2)),
-                        np.hstack((2, np.arange(2, nz), nz - 1)))).T
-        jj = jj.flatten()
-        vd = vd * idz2 / idx2
-
-        for n in range(nx):
-            j[n * 3 * nz:(n + 1) * 3 * nz] = n * nz + jj
-            v[n * 3 * nz:(n + 1) * 3 * nz] = vd
-
-        Dz = sp.csr_matrix((v, (i, j)))
-
-    return Dx, Dz
 
 if __name__ == '__main__':
 

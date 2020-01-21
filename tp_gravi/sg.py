@@ -27,7 +27,7 @@ import numpy as np
 from numba import jit
 
 
-@jit
+@jit(nopython=True)
 def _solidAngle(p1,p2,p3,Un,f):
     """
     Finds the angle between planes O-p1-p2 and O-p2-p3 where p1
@@ -65,7 +65,7 @@ def _solidAngle(p1,p2,p3,Un,f):
     return ang
 
 
-@jit
+@jit(nopython=True)
 def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
     """
     Calcul de la composante verticale de la gravité
@@ -122,7 +122,7 @@ def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
 
     # get edge lengths
     for f in range(Nf):
-        indx = np.hstack((face[f,1:], face[f,1]))
+        indx = np.hstack((face[f,1:], np.array([face[f,1]])))
         for t in range(face[f,0]):
             edgeno = np.sum(face[:f,0])+t
             ends = indx[t:t+2]
@@ -189,9 +189,9 @@ def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
                         #              Save edge integrals and mark as done
                         s=np.nonzero(np.logical_and(Edge[:,6]==Edge[Eno,7], Edge[:,7]==Edge[Eno,6]))
                         Edge[Eno,4] = I
-                        Edge[s,4] = I
+                        Edge[s[0],4] = I
                         Edge[Eno,5] = 1
-                        Edge[s,5] = 1
+                        Edge[s[0],5] = 1
 
                     pqr = I*V
                     PQR += pqr
@@ -211,13 +211,13 @@ def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
 
 if __name__ == '__main__':
 
-    p = np.array([[0, 0, 0],[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+    p = np.array([[0, 0, 0],[0, 0, 1],[1, 0, 0],[0, 1, 0]], np.float64)
     t = np.array([[0, 1, 2],[1, 2, 3],[0, 2, 3],[0, 1, 3]],np.int32)
     face = np.hstack( (np.array([3, 3, 3, 3],np.int32).reshape(4,1), t) )
 
-    x0=0
-    y0=0
-    z0=-2
+    x0=0.0
+    y0=0.0
+    z0=-2.0
 
     p[:,0] += x0
     p[:,1] += y0

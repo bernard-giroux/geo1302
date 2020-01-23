@@ -70,7 +70,7 @@ def gz(rho,face,corner,x1,y1,z1,checkNormal=True):
     """
     Calcul de la composante verticale de la gravité
 
-    g = gz(rho,face,corner,x0,y0,z0,x1,y1,z1)
+    g = gz(rho,face,corner,x1,y1,z1)
 
     Input
         rho: densité                                     [ g/cm**3 ]

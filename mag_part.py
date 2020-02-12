@@ -590,7 +590,7 @@ class GrilleVF:
 
         INPUT
             field: data array of size equal to the number of cells in the grid
-            fieldname: name to be assinged to the data (string)
+            fieldname: name to be assigned to the data (string)
             filename: name of xdmf file (string)
         """
 
@@ -638,7 +638,7 @@ class GrilleVF:
         INPUT
             field: data array of size equal to the number of cells in the grid
             fieldname: name to be assigned to the data (string)
-            filename: name of vtk file (string)
+            filename: name of vtk file without extension (string)
         """
         import vtk
 
@@ -668,7 +668,7 @@ class GrilleVF:
 
         writer = vtk.vtkXMLRectilinearGridWriter()
         writer.SetInputData(rgrid)
-        writer.SetFileName(filename)
+        writer.SetFileName(filename+'.vtr')
         writer.Write()
 
     def toVTKx(self, field, fieldname, filename):
@@ -679,7 +679,7 @@ class GrilleVF:
             field: data array of size equal to the number of cells in the grid
                    for the x component (nx-1) * ny * nz
             fieldname: name to be assigned to the data (string)
-            filename: name of vtk file (string)
+            filename: name of vtk file without extension (string)
         """
         import vtk
 
@@ -709,7 +709,7 @@ class GrilleVF:
 
         writer = vtk.vtkXMLRectilinearGridWriter()
         writer.SetInputData(rgrid)
-        writer.SetFileName(filename)
+        writer.SetFileName(filename+'.vtr')
         writer.Write()
 
     def toVTKy(self, field, fieldname, filename):
@@ -720,7 +720,7 @@ class GrilleVF:
             field: data array of size equal to the number of cells in the grid
                    for the y component nx * (ny-1) * nz
             fieldname: name to be assigned to the data (string)
-            filename: name of vtk file (string)
+            filename: name of vtk file without extension (string)
         """
         import vtk
 
@@ -750,7 +750,7 @@ class GrilleVF:
 
         writer = vtk.vtkXMLRectilinearGridWriter()
         writer.SetInputData(rgrid)
-        writer.SetFileName(filename)
+        writer.SetFileName(filename+'.vtr')
         writer.Write()
 
     def toVTKz(self, field, fieldname, filename):
@@ -761,7 +761,7 @@ class GrilleVF:
             field: data array of size equal to the number of cells in the grid
                    for the z component nx * ny * (nz-1)
             fieldname: name to be assigned to the data (string)
-            filename: name of vtk file (string)
+            filename: name of vtk file without extension (string)
         """
         import vtk
 
@@ -791,7 +791,7 @@ class GrilleVF:
 
         writer = vtk.vtkXMLRectilinearGridWriter()
         writer.SetInputData(rgrid)
-        writer.SetFileName(filename)
+        writer.SetFileName(filename+'.vtr')
         writer.Write()
 
 

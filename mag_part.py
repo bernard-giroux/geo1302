@@ -328,11 +328,11 @@ class GrilleVF:
         # Mx
 
         d =
-        hi = np.kron(self.hx[1:],
-        him1 = np.kron(self.hx[:-1],
+        hi = self.hx[1:]
+        him1 = self.hx[:-1]
         tmp = np.ones((self.nx,), dtype=bool)
         tmp[0] = 0
-        ind1 = np.kron(tmp, np.ones((self.ny*self.nz,), dtype=bool))
+        ind1 = np.kron(np.ones((self.ny*self.nz,), dtype=bool), tmp)
         tmp[0] = 1
         tmp[-1] = 0
         ind2 =
@@ -341,13 +341,14 @@ class GrilleVF:
         # My
 
         d =
-        hi = np.kron(self.hy[1:],
-        him1 = np.kron(self.hy[:-1],
-        tmp = np.hstack((np.zeros((self.nx,), dtype=bool),
-                         np.ones((self.nx*(self.ny-1),), dtype=bool)))
-        ind1 = np.kron(tmp, np.ones((self.nz,), dtype=bool))
-        tmp =
-        ind2 = np.kron(tmp, np.ones((self.nz,), dtype=bool))
+        hi = np.kron( self.hy[1:],
+        him1 = np.kron( self.hy[:-1],
+        tmp = np.ones((self.ny,), dtype=bool)
+        tmp[0] = 0
+        ind1 =
+        tmp[0] = 1
+        tmp[-1] = 0
+        ind2 =
         My = d / ( hi/mu[ind1] + him1/mu[ind2] )
 
         # Mz

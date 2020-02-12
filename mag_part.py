@@ -631,7 +631,168 @@ class GrilleVF:
         h5f.create_dataset(fieldname, data=field.reshape((self.nz,self.ny,self.nx)).astype(np.float32))
         h5f.close()
 
+    def toVTK(self, field, fieldname, filename):
+        """
+        Save a field in VTK format
 
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+            fieldname: name to be assigned to the data (string)
+            filename: name of vtk file (string)
+        """
+        import vtk
+
+        xCoords = vtk.vtkFloatArray()
+        for i in self.x:
+            xCoords.InsertNextValue(i)
+
+        yCoords = vtk.vtkFloatArray()
+        for i in self.y:
+            yCoords.InsertNextValue(i)
+
+        zCoords = vtk.vtkFloatArray()
+        for i in self.z:
+            zCoords.InsertNextValue(i)
+
+        rgrid = vtk.vtkRectilinearGrid()
+        rgrid.SetDimensions(len(self.x), len(self.y), len(self.z))
+        rgrid.SetXCoordinates(xCoords)
+        rgrid.SetYCoordinates(yCoords)
+        rgrid.SetZCoordinates(zCoords)
+
+        data = vtk.vtkDoubleArray()
+        for i in field:
+            data.InsertNextValue(i)
+        data.SetName(fieldname)
+        rgrid.GetCellData().AddArray(data)
+
+        writer = vtk.vtkXMLRectilinearGridWriter()
+        writer.SetInputData(rgrid)
+        writer.SetFileName(filename)
+        writer.Write()
+
+    def toVTKx(self, field, fieldname, filename):
+        """
+        Save a x component field in VTK format
+
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+                   for the x component (nx-1) * ny * nz
+            fieldname: name to be assigned to the data (string)
+            filename: name of vtk file (string)
+        """
+        import vtk
+
+        xCoords = vtk.vtkFloatArray()
+        for i in self.xc:
+            xCoords.InsertNextValue(i)
+
+        yCoords = vtk.vtkFloatArray()
+        for i in self.y:
+            yCoords.InsertNextValue(i)
+
+        zCoords = vtk.vtkFloatArray()
+        for i in self.z:
+            zCoords.InsertNextValue(i)
+
+        rgrid = vtk.vtkRectilinearGrid()
+        rgrid.SetDimensions(len(self.xc), len(self.y), len(self.z))
+        rgrid.SetXCoordinates(xCoords)
+        rgrid.SetYCoordinates(yCoords)
+        rgrid.SetZCoordinates(zCoords)
+
+        data = vtk.vtkDoubleArray()
+        for i in field:
+            data.InsertNextValue(i)
+        data.SetName(fieldname)
+        rgrid.GetCellData().AddArray(data)
+
+        writer = vtk.vtkXMLRectilinearGridWriter()
+        writer.SetInputData(rgrid)
+        writer.SetFileName(filename)
+        writer.Write()
+
+    def toVTKy(self, field, fieldname, filename):
+        """
+        Save a y component field in VTK format
+
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+                   for the y component nx * (ny-1) * nz
+            fieldname: name to be assigned to the data (string)
+            filename: name of vtk file (string)
+        """
+        import vtk
+
+        xCoords = vtk.vtkFloatArray()
+        for i in self.x:
+            xCoords.InsertNextValue(i)
+
+        yCoords = vtk.vtkFloatArray()
+        for i in self.yc:
+            yCoords.InsertNextValue(i)
+
+        zCoords = vtk.vtkFloatArray()
+        for i in self.z:
+            zCoords.InsertNextValue(i)
+
+        rgrid = vtk.vtkRectilinearGrid()
+        rgrid.SetDimensions(len(self.x), len(self.yc), len(self.z))
+        rgrid.SetXCoordinates(xCoords)
+        rgrid.SetYCoordinates(yCoords)
+        rgrid.SetZCoordinates(zCoords)
+
+        data = vtk.vtkDoubleArray()
+        for i in field:
+            data.InsertNextValue(i)
+        data.SetName(fieldname)
+        rgrid.GetCellData().AddArray(data)
+
+        writer = vtk.vtkXMLRectilinearGridWriter()
+        writer.SetInputData(rgrid)
+        writer.SetFileName(filename)
+        writer.Write()
+
+    def toVTKz(self, field, fieldname, filename):
+        """
+        Save a z component field in VTK format
+
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+                   for the z component nx * ny * (nz-1)
+            fieldname: name to be assigned to the data (string)
+            filename: name of vtk file (string)
+        """
+        import vtk
+
+        xCoords = vtk.vtkFloatArray()
+        for i in self.x:
+            xCoords.InsertNextValue(i)
+
+        yCoords = vtk.vtkFloatArray()
+        for i in self.y:
+            yCoords.InsertNextValue(i)
+
+        zCoords = vtk.vtkFloatArray()
+        for i in self.zc:
+            zCoords.InsertNextValue(i)
+
+        rgrid = vtk.vtkRectilinearGrid()
+        rgrid.SetDimensions(len(self.x), len(self.y), len(self.zc))
+        rgrid.SetXCoordinates(xCoords)
+        rgrid.SetYCoordinates(yCoords)
+        rgrid.SetZCoordinates(zCoords)
+
+        data = vtk.vtkDoubleArray()
+        for i in field:
+            data.InsertNextValue(i)
+        data.SetName(fieldname)
+        rgrid.GetCellData().AddArray(data)
+
+        writer = vtk.vtkXMLRectilinearGridWriter()
+        writer.SetInputData(rgrid)
+        writer.SetFileName(filename)
+        writer.Write()
 
 
 if __name__ == '__main__':

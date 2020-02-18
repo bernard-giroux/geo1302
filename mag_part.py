@@ -139,19 +139,22 @@ class GrilleVF:
         self.__update_n()
 
 
-    def magmod(self, chi, B0, xo, spheq, chtot, tol=1.e-8, maxit=1000):
+    def magmod(self, chi, B0, xo, spheq, chtot, tol=1.e-8, maxit=1000,
+               solver=bicgstab, precon=False):
         '''
         Calcul la réponse magnétique
 
         Paramètres
         ----------
-        chi   : susceptibilité des voxels de la grille (nc x 1)
-        B0    : champ ambiant (3 x 1)
-        xo    : pts d'observation (npts x 3)
-        spheq : sphère équivalente pour les cond. limites (1: oui, 0:non)
-        chtot : calcul le champ total (1) ou l'anomalie (0)
-        tol   : tolérance de bicgstab
-        maxit : Nbre max d'itération de bicgstab
+        chi    : susceptibilité des voxels de la grille (nc x 1)
+        B0     : champ ambiant (3 x 1)
+        xo     : pts d'observation (npts x 3)
+        spheq  : sphère équivalente pour les cond. limites (1: oui, 0:non)
+        chtot  : calcul le champ total (1) ou l'anomalie (0)
+        tol    : tolérance de bicgstab
+        maxit  : Nbre max d'itération de bicgstab
+        solver : solveur itératif du module scipy.sparse.linalg
+        precon : si True, utilise un préconditionneur (factorisation LU incomplète)
 
         Retourne
         --------
@@ -174,7 +177,12 @@ class GrilleVF:
         if chtot == 1:
             q = f + g
             A = D.dot(M.dot(G))
-            phi, info = bicgstab(A, q, tol=tol, maxiter=maxit)
+            if precon:
+                Mpre = sp.linalg.spilu(A.tocsc())
+                Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
+            else:
+                Mpre = None
+            phi, info = solver(A, q, tol=tol, maxiter=maxit, M=Mpre)
             B = M.dot(G.dot(phi))
         else:
             BB0 = np.hstack((B0[0]+np.zeros((self.nfx,)),
@@ -184,8 +192,18 @@ class GrilleVF:
             Mtmp =
             q =
             A =
-            phi_s, info = bicgstab(A, q, tol=tol, maxiter=maxit)
+            if precon:
+                Mpre = sp.linalg.spilu(A.tocsc())
+                Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
+            else:
+                Mpre = None
+            phi_s, info = solver(A, q, tol=tol, maxiter=maxit, M=Mpre)
             B =
+
+        if info > 0:
+            print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:f}'.format(solver.__name__, info, tol))
+        elif info < 0:
+            print('{0:s}: illegal input or breakdown'.format(solver.__name__))
 
         Bx = B[:self.nfx]
         By = B[self.nfx:(self.nfx+self.nfy)]

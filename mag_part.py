@@ -201,7 +201,7 @@ class GrilleVF:
             B =
 
         if info > 0:
-            print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:f}'.format(solver.__name__, info, tol))
+            print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:g}'.format(solver.__name__, info, tol))
         elif info < 0:
             print('{0:s}: illegal input or breakdown'.format(solver.__name__))
 

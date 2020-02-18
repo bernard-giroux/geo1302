@@ -151,8 +151,8 @@ class GrilleVF:
         xo     : pts d'observation (npts x 3)
         spheq  : sphère équivalente pour les cond. limites (1: oui, 0:non)
         chtot  : calcul le champ total (1) ou l'anomalie (0)
-        tol    : tolérance de bicgstab
-        maxit  : Nbre max d'itération de bicgstab
+        tol    : tolérance du solveur
+        maxit  : Nbre max d'itération du solveur
         solver : solveur itératif du module scipy.sparse.linalg
         precon : si True, utilise un préconditionneur (factorisation LU incomplète)
 

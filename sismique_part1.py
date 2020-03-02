@@ -11,8 +11,6 @@ from scipy.interpolate import interpn
 import matplotlib.pyplot as plt
 from numba import jit
 
-from utils import nargout
-
 
 class GrilleFDTD:
     def __init__(self, x, z):

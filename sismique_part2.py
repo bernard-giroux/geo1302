@@ -693,8 +693,8 @@ class GrilleFDTD:
 
             if len(trc) > 0:
                 for nt in np.arange(ntrc):
-                    trc_vx[m, nt] = v_x[jtrc[nt], itrc[nt]]
-                    trc_vz[m, nt] = v_z[jtrc[nt], itrc[nt]]
+                    trc_vx[m, nt] = v_x[itrc[nt], jtrc[nt]]
+                    trc_vz[m, nt] = v_z[itrc[nt], jtrc[nt]]
 
             # Contraintes
             if pml is not None:
@@ -834,6 +834,7 @@ if __name__ == '__main__':
 
     checkProp = True
     timeFor = True
+    checkPML = True
 
     if checkProp:
         dx = 50.0
@@ -929,3 +930,76 @@ if __name__ == '__main__':
         g.propage(src, t, True)
         t = time.time() - tic
         print(t)
+
+    if checkPML:
+        dx = 10.0
+        nx = 400
+        nz = 400
+        x = dx * np.arange(nx)
+        z = dx * np.arange(nz)
+
+        g = GrilleFDTD(x, z)
+
+        p = 0.95
+        Vp = 4000.0 + np.zeros((x.size, z.size))
+        sigma = 0.25
+        Vs = Vp * np.sqrt((0.5-sigma)/(1.0-sigma))
+        rho = 2670.0 + np.zeros(Vp.shape)
+        dt = p * 6 * dx / (7*np.sqrt(2)*Vp[0, 0])
+
+        g.defProp(Vp, Vs, rho, dt)
+        pml.prepare(nx=g.nx, nz=g.nz, dx=dx, dt=dt, V=Vp[0, 0])
+
+        fdom = 10.0
+        src = Ricker(int(nx/2), int(nz/2), fdom, dt, 1.e6)
+        t = 1.5
+
+        trc = np.zeros((3,2))
+        trc[0, 0] = pml.N*dx
+        trc[0, 1] = pml.N*dx
+        trc[1, 0] = (100+pml.N)*dx
+        trc[1, 1] = pml.N*dx
+        trc[2, 0] = (200+pml.N)*dx
+        trc[2, 1] = pml.N*dx
+
+        tx, tz, E = g.propageO24_pml(src, t, pml=pml, trc=trc, calcE=True, showPlot=True)
+
+        plt.figure()
+        plt.semilogy(E)
+        plt.show()
+
+        fig, ax = plt.subplots(nrows=2)
+        ax[0].plot(tx)
+        ax[1].plot(tz)
+        plt.show()
+
+        pml = CPML(N=10, nd=2, Rc=0.00001, nu0=2, nnu=2, nalpha=1, alpha0=np.pi*10)
+        pml.prepare(nx=41, nz=31, dx=dx, dt=dt, V=4000)
+
+        fig,ax = plt.subplots(nrows=2, ncols=2)
+        fig.set_size_inches(9,7)
+        cax00 = ax[0, 0].imshow(pml.bx.T, cmap='CMRmap')
+        fig.colorbar(cax00, ax=ax[0, 0])
+        ax[0, 0].set_title('$b_x$ à i')
+        ax[0, 0].set_xlabel('i')
+        ax[0, 0].set_ylabel('j')
+
+        cax01 = ax[0, 1].imshow(pml.bx2.T, cmap='CMRmap')
+        fig.colorbar(cax01, ax=ax[0, 1])
+        ax[0, 1].set_title('$b_x$ à i+1/2')
+        ax[0, 1].set_xlabel('i')
+        ax[0, 1].set_ylabel('j')
+
+        cax10 = ax[1, 0].imshow(pml.bz.T, cmap='CMRmap')
+        fig.colorbar(cax10, ax=ax[1, 0])
+        ax[1, 0].set_title('$b_z$ à j')
+        ax[1, 0].set_xlabel('i')
+        ax[1, 0].set_ylabel('j')
+
+        cax11 = ax[1, 1].imshow(pml.bz2.T, cmap='CMRmap')
+        fig.colorbar(cax11, ax=ax[1, 1])
+        ax[1, 1].set_title('$b_z$ à j+1/2')
+        ax[1, 1].set_xlabel('i')
+        ax[1, 1].set_ylabel('j')
+
+        plt.show()

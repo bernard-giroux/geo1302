@@ -63,6 +63,7 @@ class CPML:
         """
         # à (i,j)
 
+        # xp : coordonnées des points dans la portion PML
         xp =
         d0 = (self.nd+1) * np.log(1/self.Rc)*V / (2*self.N*dx)
         dx_pml =
@@ -70,17 +71,20 @@ class CPML:
         nu = 1. + (self.nu0-1.) * (xp / (self.N*dx))**self.nnu
         alpha_pml = self.alpha0*(1. - (xp / (self.N*dx))**self.nalpha)
 
+        # inux : 1/nu_x
         self.inux = np.ones((nx, nz))
-        self.inux[] =
-        self.inux[] =
+        # portion à "droite" du domaine
+        self.inux[:self.N, :] =
+        # portion à "gauche" du domaine
+        self.inux[(nx-self.N):, :] =
 
         d = np.zeros((nx, nz))
-        d[] =
-        d[] =
+        d[:self.N, :] =
+        d[(nx-self.N):, :] =
 
         alpha = np.zeros((nx, nz))
-        alpha[] =
-        alpha[] =
+        alpha[:self.N, :] =
+        alpha[(nx-self.N):, :] =
 
         self.bx = np.exp(-(d * self.inux + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -88,16 +92,16 @@ class CPML:
         self.cx[np.isnan(self.cx)] = 0.0
 
         self.inuz = np.ones((nx, nz))
-        self.inuz[:, :self.N] =np.kron(1. / nu[::-1], np.ones((nx, 1)))
-        self.inuz[:, (nz-self.N):] =np.kron(1. / nu, np.ones((nx, 1)))
+        self.inuz[:, :self.N] = np.kron(1. / nu[::-1], np.ones((nx, 1)))
+        self.inuz[:, (nz-self.N):] = np.kron(1. / nu, np.ones((nx, 1)))
 
         d = np.zeros((nx, nz))
-        d[:, :self.N] =np.kron(dx_pml[::-1], np.ones((nx, 1)))
-        d[:, (nz-self.N):] =np.kron(dx_pml, np.ones((nx, 1)))
+        d[:, :self.N] = np.kron(dx_pml[::-1], np.ones((nx, 1)))
+        d[:, (nz-self.N):] = np.kron(dx_pml, np.ones((nx, 1)))
 
         alpha = np.zeros((nx, nz))
-        alpha[:, :self.N] =np.kron(alpha_pml[::-1], np.ones((nx, 1)))
-        alpha[:, (nz-self.N):] =np.kron(alpha_pml, np.ones((nx, 1)))
+        alpha[:, :self.N] = np.kron(alpha_pml[::-1], np.ones((nx, 1)))
+        alpha[:, (nz-self.N):] = np.kron(alpha_pml, np.ones((nx, 1)))
 
         self.bz = np.exp(-(d * self.inuz + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -134,16 +138,16 @@ class CPML:
         self.cx2[np.isnan(self.cx2)] = 0.0
 
         self.inuz2 = np.ones((nx, nz))
-        self.inuz2[:, :self.N] =np.kron(1. / nu1[::-1], np.ones((nx, 1)))
-        self.inuz2[:, (nz-self.N-1):] =np.kron(1. / nu2, np.ones((nx, 1)))
+        self.inuz2[:, :self.N] = np.kron(1. / nu1[::-1], np.ones((nx, 1)))
+        self.inuz2[:, (nz-self.N-1):] = np.kron(1. / nu2, np.ones((nx, 1)))
 
         d = np.zeros((nx, nz))
-        d[:, :self.N] =np.kron(dx1_pml[::-1], np.ones((nx, 1)))
-        d[:, (nz-self.N-1):] =np.kron(dx2_pml, np.ones((nx, 1)))
+        d[:, :self.N] = np.kron(dx1_pml[::-1], np.ones((nx, 1)))
+        d[:, (nz-self.N-1):] = np.kron(dx2_pml, np.ones((nx, 1)))
 
         alpha = np.zeros((nx, nz))
-        alpha[:, :self.N] =np.kron(alpha1_pml[::-1], np.ones((nx, 1)))
-        alpha[:, (nz-self.N-1):] =np.kron(alpha2_pml, np.ones((nx, 1)))
+        alpha[:, :self.N] = np.kron(alpha1_pml[::-1], np.ones((nx, 1)))
+        alpha[:, (nz-self.N-1):] = np.kron(alpha2_pml, np.ones((nx, 1)))
 
         self.bz2 = np.exp(-(d * self.inuz2 + alpha)*dt)
         with np.errstate(divide='ignore', invalid='ignore'):

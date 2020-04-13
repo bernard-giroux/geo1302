@@ -10,10 +10,58 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import scipy.sparse.linalg as spl
 
-from cgrid2d import Grid2Dcpp
-from geo1302.tomo import derivative
+import ttcrpy.rgrid as rg
 
 plt.style.use('default')
+
+
+# %% fonction pour l'affichage des rais
+
+def plot_rais(rais, grid=None, ax=None):
+    """
+
+    Affiche les rais
+
+    Parameters
+    ----------
+    rais : :obj:`list` of :obj:`np.ndarray`
+        Coordonnées des rais.
+    grid : :obj:`Grid2d`, optional
+        Grille de modélisation pour l'affichage du modèle de vitesse. The
+        default is None.
+    ax : :obj:`Axes`, optional
+        Axes où tracer les rais, llLes axes sont créés automatiquement si
+        None. The default is None.
+
+    Returns
+    -------
+    ax : :obj:`Axes`
+        Axes utilisés pour tracer les rais.
+
+    """
+    if ax is None:
+        plt.figure(figsize=(6,8))
+        ax = plt.gca()
+
+    if grid is not None:
+        nx, nz = grid.shape
+        x = grid.x
+        z = grid.z
+        slowness = grid.get_slowness()
+
+        im = ax.pcolor(x, z, 1/(slowness.T), cmap='plasma')
+        cb = plt.colorbar(im)
+        cb.set_label('Vitesse (m/s)')
+
+    for ir in range(len(rais)):
+        ax.plot(rais[ir][:, 0], rais[ir][:, 1], 'k', linewidth=0.5)
+
+    plt.axis('scaled')
+    ax.invert_yaxis()
+    ax.set_ylabel('Profondeur (m)')
+    ax.set_xlabel('Distance (m)')
+    return ax
+
 
 # %% Construction de la grille pour le tracé de rais
 
@@ -28,7 +76,7 @@ nz = int((zmax-xmin)/dz+0.001)
 xg = np.linspace(xmin, xmax, nx+1)
 zg = np.linspace(zmin, zmax, nz+1)
 
-g = Grid2Dcpp(b'iso', nx, nz, dx, dz, xmin, zmin, 10, 10, 1)
+g = rg.Grid2d(xg, zg, method='SPM', nsnx=10, nsnz=10)
 
 # %% Lecture des données
 
@@ -41,7 +89,7 @@ t0 = np.zeros((Tx.shape[0], ))
 
 # %%
 # modèle initial, on prend la lenteur apparente moyenne
-Ldroit = Grid2Dcpp.Lsr2d(Tx, Rx, xg, zg)  # matrice L pour des rais droits
+Ldroit = rg.Grid2d.data_kernel_straight_rays(Tx, Rx, xg, zg)  # matrice L pour des rais droits
 l_rai =                 # longueur des rais
 lent_app = dobs/l_rai                     # lenteurs apparentes
 m0 = np.mean(lent_app) + np.zeros((nx*nz,))
@@ -50,7 +98,7 @@ m0 = np.mean(lent_app) + np.zeros((nx*nz,))
 # %%
 
 # matrices de lissage
-Dx, Dz = derivative(nx, nz, dx, dz, 2)
+Dx, Dz = g.compute_K(2)
 
 D = Dx + Dz
 DTD = D.T.dot(D)
@@ -72,7 +120,7 @@ for alpha in alpha_val:
             m = m0.copy()
             d = Ldroit.dot(m0)
         else:
-            d, L = g.raytrace(m, [], [], Tx, Rx, t0, 2)
+            d, L = g.raytrace(Tx, Rx, slowness=m, compute_L=True)
             J = L
 
         E.append(np.linalg.norm(d-dobs))
@@ -85,7 +133,7 @@ for alpha in alpha_val:
         m += dm
 
         if it == maxit-1:
-            d, L = g.raytrace(m, [], [], Tx, Rx, t0, 2)
+            d, L = g.raytrace(Tx, Rx, slowness=m, compute_L=True)
             E.append(np.linalg.norm(d-dobs))
 
             plt.figure(nfig, figsize=(9, 5))

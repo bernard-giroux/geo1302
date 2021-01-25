@@ -222,15 +222,15 @@ if __name__ == '__main__':
     g = prd(rho, x0, x, y, z)
     print(g)
 
-    # test de la classe Grille
-    x = np.arange(-8.5,9.0)
-    y = np.arange(-10.5,11.0)
+    x = np.arange(-8.5, 9.0)
+    y = np.arange(-10.5, 11.0)
     z = np.arange(10.0)
     g = Grille(x, y, z)
 
     print(g.nc, g.dx)
 
-    print(g.ind(1,1,1))
+    print(g.ind(0, 0, 0))
+    print(g.ind(1, 0, 0))
 
     rho = np.zeros((g.nc,))
     rho[g.ind(1,1,1)] = 1.0
@@ -239,19 +239,25 @@ if __name__ == '__main__':
 
     x0 = np.array([[0.0, 0.0, 0.0],
         [1.0, 0.0, 0.0],
-        [2.0, 0.0, 0.0]])
+        [3.0, 0.0, 0.0],
+        [5.0, 0.0, 0.0]])
 
     tic = time.time()
     G = g.prd_G(x0)
     t_G = time.time() - tic
 
     rho = np.zeros((g.nc,))
-    rho[ g.ind(8,10,5) ] = 1.0
+    rho[ g.ind(8,10,5) ] = 10.0
 
     tic = time.time()
     gz = np.dot(G, rho)
     t_mult = time.time() - tic
 
-    print('{0:e}  {1:e}'.format(t_G, t_mult))
+    print(t_G, t_mult)
+
+    import matplotlib.pyplot as plt
+    plt.plot(x0[:,0], gz, 'o')
+    plt.xlabel('x (m)', fontsize=12)
+    plt.ylabel('$g_z$ (mgal)', fontsize=12)
 
     g.toXdmf(rho, 'rho', 'grille')

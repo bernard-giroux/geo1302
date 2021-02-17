@@ -12,8 +12,6 @@ from scipy.sparse.linalg import bicgstab
 import numpy as np
 import h5py
 
-from geo1302.utils import nargout
-
 
 class GrilleVF:
     """
@@ -89,7 +87,7 @@ class GrilleVF:
             raise
 
         self._x = tmp
-        self.hx = np.diff(tmp)
+        self.hx =
         self.xc = (tmp[1:]+tmp[:-1])/2
         self.dx = np.diff(self.xc)
         self.__update_n()
@@ -169,7 +167,7 @@ class GrilleVF:
         D = self.fabrique_D()
         M = self.fabrique_M(mu)
         G = self.fabrique_G()
-        f,g = self.fabrique_cf(B0,chi)
+        f, g = self.fabrique_cf(B0, chi)
 
         if spheq == 0:
             g[:] = 0.0
@@ -430,11 +428,11 @@ class GrilleVF:
         # assemblage
         return sp.vstack((Gx, Gy, Gz)).tocsr()
 
-    def fabrique_cf(self, B0, chi=[]):
-        nout = nargout()
-
-        if not ( nout==1 or nout==2 ):
-            raise ValueError()
+    def fabrique_cf(self, B0, chi=[], compute_g=True):
+        if compute_g:
+            nout = 2
+        else:
+            nout = 1
 
         if len(chi)==0 and nout > 1:
             raise ValueError('Erreur: donnez chi en argument pour obtenir f et g')
@@ -595,12 +593,10 @@ class GrilleVF:
 
         # Output
 
-        if nout==1 and len(chi)==0:
+        if nout==1:
             return f
-        elif nout==2 and len(chi)>0:
+        else:
             return f, g
-        else: # nécessairement nout==1 && len(chi)>0
-            return f+g
 
     def toXdmf(self, field, fieldname, filename):
         """
@@ -833,9 +829,9 @@ if __name__ == '__main__':
     D = gvf.fabrique_D()
     M = gvf.fabrique_M(mu)
     G = gvf.fabrique_G()
-    f = gvf.fabrique_cf(B0)
-    f,g = gvf.fabrique_cf(B0, chi)
-    q = gvf.fabrique_cf(B0, chi)
+    f = gvf.fabrique_cf(B0, compute_g=False)
+    f, g = gvf.fabrique_cf(B0, chi)
+    q = f + g
 
 
 

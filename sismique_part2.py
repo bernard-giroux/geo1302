@@ -9,9 +9,6 @@ import time
 import numpy as np
 from scipy.interpolate import interpn
 import matplotlib.pyplot as plt
-from numba import jit
-
-from utils import nargout
 
 
 class CPML:
@@ -312,7 +309,6 @@ class GrilleFDTD:
 
         self.m = dt / self.dx * mu2
 
-    @jit
     def propage0(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)

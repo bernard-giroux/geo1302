@@ -9,7 +9,6 @@ import time
 import numpy as np
 from scipy.interpolate import interpn
 import matplotlib.pyplot as plt
-from numba import jit
 
 
 class GrilleFDTD:
@@ -87,13 +86,13 @@ class GrilleFDTD:
             raise ValueError('Size of rho incorrect')
 
         self.dt = dt
-        self.b1 = 
+        self.b1 =
 
         # moyenne arithmétique pour la densité
         # à i+1/2, j+1/2
 
-        x = 
-        z = 
+        x =
+        z =
         x = x.reshape(-1, 1)
         z = z.reshape(-1, 1)
         # cannot extrapolate with interpn, we duplicate last column
@@ -105,7 +104,7 @@ class GrilleFDTD:
         rho2 = interpn((self.x, self.z), rho, xi)
         rho2 = rho2.reshape(self.nx, self.nz)
 
-        self.b2 = 
+        self.b2 =
 
         # moyenne harmonique pour les constantes d'élasticité
 
@@ -115,8 +114,8 @@ class GrilleFDTD:
         z = self.z.reshape(-1, 1)
 
         xi = np.hstack((
-        lambda2 = 
-        mu2 = 
+        lambda2 =
+        mu2 =
         lambda2 = lambda2.reshape(self.nx, self.nz)
         mu2 = mu2.reshape(self.nx, self.nz)
 
@@ -131,13 +130,12 @@ class GrilleFDTD:
         z[-1] = z[-2]
 
         xi = np.hstack((
-            
-        mu2 = 
+
+        mu2 =
         mu2 = mu2.reshape(self.nx, self.nz)
 
         self.m = dt / self.dx * mu2
 
-    @jit
     def propage0(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
@@ -220,15 +218,15 @@ class GrilleFDTD:
             tau_zz[src.i, src.j] += src(m)
             tau_xx[src.i, src.j] += src(m)
 
-            v_x[] += 
+            v_x[] +=
 
-            v_z[] += 
+            v_z[] +=
 
-            tau_xx[] += 
+            tau_xx[] +=
 
-            tau_zz[] += 
+            tau_zz[] +=
 
-            tau_xz[] += 
+            tau_xz[] +=
 
             if showPlot and np.remainder(m, 20) == 0:
                 im1.set_data(v_x.T)
@@ -300,7 +298,7 @@ class Ricker(Source):
     def __init__(self, i, j, fdom, dt, A=1.0):
         Source.__init__(self, i, j, A)
         self.t = np.arange(-1.0/fdom, 1.0/fdom + dt/3, dt)
-        self.f = 
+        self.f =
 
 
 if __name__ == '__main__':

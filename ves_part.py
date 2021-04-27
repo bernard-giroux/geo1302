@@ -129,14 +129,14 @@ class Sondage:
             l1, = ax[0].loglog(self.ab2, self.rhoa, 'o')
             l2, = ax[0].loglog(self.ab2, self.rhoam)
             ax[0].set_xlabel('AB/2 (m)', fontsize=16)
-            ax[0].set_ylabel('$\\rho_a (\Omega m)$', fontsize=16)
+            ax[0].set_ylabel('$\\rho_a (\Omega m)$', usetex=True, fontsize=16)
             lr = 1+int(m.size/2)
             z = np.cumsum(m[lr:])
             z = np.kron(z, np.ones((2,)))
             z = np.hstack((0.0, z, 2*z[-1]))
             rho = np.kron(m[:lr], np.ones((2,)))
             l3, = ax[1].semilogx(rho, z)
-            ax[1].set_xlabel('$\\rho (\Omega m)$', fontsize=16)
+            ax[1].set_xlabel('$\\rho (\Omega m)$', usetex=True, fontsize=16)
             ax[1].set_ylabel('Profondeur (m)', fontsize=16)
             ax[1].invert_yaxis()
             ax[1].yaxis.set_label_position('right')
@@ -201,10 +201,9 @@ class Sondage:
 
 if __name__ == '__main__':
 
-    filename = 'ab2.dat'
-    data = np.loadtxt(filename)
+    data = np.loadtxt('sondage.dat')
 
     sondage = Sondage(data)
-    m0 = np.array([20.0, 20.0, 20.0, 10.0, 15.0])
+    m0 = np.array([10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0])
     m = sondage.inv(m0, showfig=True)
     print(m)

@@ -30,7 +30,7 @@ def plot_rais(rais, grid=None, ax=None):
         Grille de modélisation pour l'affichage du modèle de vitesse. The
         default is None.
     ax : :obj:`Axes`, optional
-        Axes où tracer les rais, llLes axes sont créés automatiquement si
+        Axes où tracer les rais, les axes sont créés automatiquement si
         None. The default is None.
 
     Returns
@@ -84,7 +84,6 @@ data = np.loadtxt('model1_tt.dat')
 Tx = data[:, :2].copy()
 Rx = data[:, 2:4].copy()
 dobs = data[:, -1]
-t0 = np.zeros((Tx.shape[0], ))
 
 
 # %%

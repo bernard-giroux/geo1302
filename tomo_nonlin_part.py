@@ -164,14 +164,14 @@ for alpha in alpha_val:
 
 # %%
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 
 plt.figure(nfig, figsize=(6, 5))
 plt.plot(residuals, sol_norm, 'k-', zorder=1)
 plt.scatter(residuals, sol_norm, c=alpha_val, cmap='plasma', zorder=2,
             norm=colors.LogNorm(vmin=alpha_val[0], vmax=alpha_val[-1]), s=50)
-plt.xlabel('$\|\|G(\mathbf{m})-\mathbf{d}_{obs}\|\|_2$', fontsize=16)
-plt.ylabel('$\|\|\mathbf{Dm}\|\|_2$', fontsize=16)
+plt.xlabel(r'$\|\|G(\mathbf{m})-\mathbf{d}_{obs}\|\|_2$', fontsize=16)
+plt.ylabel(r'$\|\|\mathbf{Dm}\|\|_2$', fontsize=16)
 plt.gca().set_xscale('log')
 plt.gca().set_yscale('log')
 cb = plt.colorbar()

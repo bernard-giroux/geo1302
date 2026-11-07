@@ -1,2 +1,7 @@
 *.pyc
 .ipynb_checkpoints/
+
+# Cython build products (geo1302/setup.py)
+build/
+*.so
+em_c.cpp

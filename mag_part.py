@@ -10,7 +10,6 @@ import scipy.sparse as sp
 from scipy.interpolate import interpn
 from scipy.sparse.linalg import bicgstab
 import numpy as np
-import h5py
 
 
 class GrilleVF:
@@ -180,7 +179,7 @@ class GrilleVF:
                 Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
             else:
                 Mpre = None
-            phi, info = solver(A, q, tol=tol, maxiter=maxit, M=Mpre)
+            phi, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
             B = M.dot(G.dot(phi))
         else:
             BB0 = np.hstack((B0[0]+np.zeros((self.nfx,)),
@@ -195,7 +194,7 @@ class GrilleVF:
                 Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
             else:
                 Mpre = None
-            phi_s, info = solver(A, q, tol=tol, maxiter=maxit, M=Mpre)
+            phi_s, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
             B =
 
         if info > 0:
@@ -270,7 +269,7 @@ class GrilleVF:
             ii[] =
             jj[] =
         s = np.tile(np.hstack((1.0/self.hx[:-1], -1.0/self.hx[1:])), (self.ny*self.nz,))
-        Dx = sp.coo_matrix((s,(ii,jj)))
+        Dx = sp.coo_array((s,(ii,jj)))
 
         # Dy
 
@@ -283,11 +282,11 @@ class GrilleVF:
         jj = np.empty((self.nz*nval,), dtype=np.int64)
         for n in np.arange(self.nz):
             ii[] =
-            jj[] =
+            jj[] =
         s = np.hstack((np.kron(1.0/self.hy[:-1], np.ones((self.nx,))),
                        np.kron(-1.0/self.hy[1:], np.ones((self.nx,)))))
         s = np.tile(s, (self.nz,))
-        Dy = sp.coo_matrix((s, (ii,jj)))
+        Dy = sp.coo_array((s, (ii,jj)))
 
         # Dz
 
@@ -296,7 +295,7 @@ class GrilleVF:
         j =
         s = np.hstack((np.kron(1./self.hz[:-1], np.ones((self.nx*self.ny,))),
                        np.kron(-1./self.hz[1:], np.ones((self.nx*self.ny,))) ))
-        Dz = sp.coo_matrix((s, (i,j)))
+        Dz = sp.coo_array((s, (i,j)))
 
         # assemblage
 
@@ -379,7 +378,7 @@ class GrilleVF:
 
         # assemblage
 
-        return sp.coo_matrix((np.hstack((Mx, My, Mz)),
+        return sp.coo_array((np.hstack((Mx, My, Mz)),
                                         (np.arange(self.nf),
                                          np.arange(self.nf)))).tocsr()
 
@@ -398,7 +397,7 @@ class GrilleVF:
             ii[] =
             jj[] =
         s = np.tile(np.hstack((-1.0/self.dx, 1.0/self.dx)), (self.ny*self.nz,))
-        Gx = sp.coo_matrix((s,(ii,jj)))
+        Gx = sp.coo_array((s,(ii,jj)))
 
         # Gy
 
@@ -415,7 +414,7 @@ class GrilleVF:
         s = np.hstack((np.kron(-1.0/self.dy, np.ones((self.nx,))),
                        np.kron( 1.0/self.dy, np.ones((self.nx,)))))
         s = np.tile(s, (self.nz,))
-        Gy = sp.coo_matrix((s,(ii,jj)))
+        Gy = sp.coo_array((s,(ii,jj)))
 
         # Gz
 
@@ -423,7 +422,7 @@ class GrilleVF:
         j =
         s = np.hstack((np.kron(-1.0/self.dz, np.ones((self.nx*self.ny,))),
                        np.kron( 1.0/self.dz, np.ones((self.nx*self.ny,))) ))
-        Gz = sp.coo_matrix((s,(i,j)))
+        Gz = sp.coo_array((s,(i,j)))
 
         # assemblage
         return sp.vstack((Gx, Gy, Gz)).tocsr()
@@ -641,6 +640,7 @@ class GrilleVF:
 
         f.close()
 
+        import h5py   # optionnel, seulement nécessaire pour ce format
         h5f = h5py.File(filename+'.h5', 'w')
         h5f.create_dataset(fieldname, data=field.reshape((self.nz,self.ny,self.nx)).astype(np.float32))
         h5f.close()
@@ -836,7 +836,7 @@ if __name__ == '__main__':
 
 
     import matplotlib.pyplot as plt
-    plt.imshow(D.todense())
+    plt.imshow(D.toarray())
     plt.colorbar(orientation='horizontal')
     plt.title('D')
     plt.show()
@@ -845,12 +845,12 @@ if __name__ == '__main__':
     plt.title('q')
     plt.show()
 
-    plt.imshow(M.todense())
+    plt.imshow(M.toarray())
     plt.colorbar()
     plt.title('M')
     plt.show()
 
-    plt.imshow(G.todense())
+    plt.imshow(G.toarray())
     plt.colorbar()
     plt.title('G')
     plt.show()

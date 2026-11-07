@@ -7,7 +7,7 @@ Created on Wed Jan 18 14:35:23 2017
 
 @author: giroux
 """
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 import matplotlib as mpl
@@ -51,7 +51,7 @@ class MaillageTriangulaire:
         return self._triangles
     @triangles.setter
     def triangles(self, val):
-        tmp = np.array(val, dtype=np.int)
+        tmp = np.array(val, dtype=int)
         if tmp.ndim != 2:
             raise ValueError('2D array needed')
         if tmp.shape[1] != 3:
@@ -66,7 +66,7 @@ class MaillageTriangulaire:
 
 
 
-class Donnees(metaclass=ABCMeta):
+class Donnees(ABC):
     def __init__(self, dtype):
         self.type = dtype
 
@@ -82,7 +82,7 @@ class Donnees(metaclass=ABCMeta):
 
 class DonneesTerrain(Donnees):
     def __init__(self, dtype, data, loc):
-        Donnees.__init__(self, dtype)
+        super().__init__(dtype)
         self.val = np.array(data)
         self.locali = np.array(loc)
 
@@ -93,7 +93,7 @@ class DonneesTerrain(Donnees):
         return self.locali
 
     def plot(self, fig=None):
-        if fig == None:
+        if fig is None:
             fig = plt.figure()
 
         norm = mpl.colors.Normalize(vmin=np.min(self.val), vmax=np.max(self.val))
@@ -107,7 +107,7 @@ class DonneesTerrain(Donnees):
 
 class DonneesLabo(Donnees):
     def __init__(self, dtype, val, loc, no):
-        Donnees.__init__(self, dtype)
+        super().__init__(dtype)
         self.val = val
         self.loc = loc
         self.no_ech = no
@@ -119,7 +119,7 @@ class DonneesLabo(Donnees):
         return self.loc
 
     def plot(self, fig=None):
-        if fig == None:
+        if fig is None:
             fig = plt.figure()
 
         plt.plot(self.no_ech, self.val, 'sk')

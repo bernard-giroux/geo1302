@@ -54,7 +54,7 @@ cdef class Ground:
     nlayer : int
         nombre de couches
     d : float
-        épaisseur des couches
+        épaisseur des couches (m)
     '''
     cdef int _nlayer
     cdef object _d
@@ -85,7 +85,7 @@ cdef class Ground:
         Paramètres
         ----------
         sigma : array numpy
-            conductivité des couches en S/m
+            conductivité des couches en mS/m
         """
         z = np.cumsum(self.d)
         z = np.kron(z, np.ones((2,)))
@@ -143,12 +143,12 @@ cdef class EM38:
         Paramètres
         ----------
         sigma : array numpy
-            conductivité des couches (S/m)
+            conductivité des couches (mS/m)
 
         Retourne
         --------
         pred : array numpy
-            réponse prédite.  La 1re moitié des valeurs est la réponse pour des
+            réponse prédite (mS/m).  La 1re moitié des valeurs est la réponse pour des
             bobines verticales aux différentes hauteurs de mesure, et la 2e
             moitié est la réponse pour des bobines horizontales.
         """
@@ -172,7 +172,7 @@ cdef class EM38:
         Paramètres
         ----------
         sigma : array numpy
-            conductivité des couches (S/m)
+            conductivité des couches (mS/m)
 
         Retourne
         --------

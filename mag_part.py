@@ -6,10 +6,60 @@ Created on Sun Jan 29 22:25:43 2017
 @author: giroux
 """
 import math
+import warnings
 import scipy.sparse as sp
 from scipy.interpolate import interpn
-from scipy.sparse.linalg import bicgstab
+from scipy.sparse.linalg import bicgstab, spsolve
 import numpy as np
+
+try:
+    import pypardiso   # PARDISO d'Intel MKL (Windows et Linux x86-64)
+    has_pardiso = True
+except (ImportError, OSError):   # mkl_rt introuvable, p. ex. sous macOS
+    has_pardiso = False
+
+
+def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
+    '''
+    Solutionne le système creux A x = q
+
+    Paramètres
+    ----------
+    A      : matrice creuse du système (n x n)
+    q      : terme de droite (n)
+    solver : solveur itératif du module scipy.sparse.linalg (bicgstab, gmres, ...)
+             ou solveur direct : 'superlu' ou 'pardiso'
+    tol    : tolérance du solveur itératif
+    maxit  : Nbre max d'itération du solveur itératif
+    precon : si True, utilise un préconditionneur (factorisation LU incomplète)
+
+    Retourne
+    --------
+    x : array numpy (n)
+    '''
+    if callable(solver):
+        if precon:
+            Mpre = sp.linalg.spilu(A.tocsc())
+            Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
+        else:
+            Mpre = None
+        x, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
+        if info > 0:
+            print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:g}'.format(solver.__name__, info, tol))
+        elif info < 0:
+            print('{0:s}: illegal input or breakdown'.format(solver.__name__))
+        return x
+
+    solver = solver.lower()
+    if solver not in ('superlu', 'pardiso'):
+        raise ValueError('Solveur ' + solver + ' non implémenté')
+    if solver == 'pardiso' and not has_pardiso:
+        warnings.warn('PARDISO (pypardiso) non disponible, SuperLU utilisé.',
+                      RuntimeWarning, stacklevel=3)
+        solver = 'superlu'
+    if solver == 'pardiso':
+        return pypardiso.spsolve(sp.csr_array(A), np.asarray(q, dtype=np.float64))
+    return spsolve(sp.csc_array(A), q)
 
 
 class GrilleVF:
@@ -150,7 +200,8 @@ class GrilleVF:
         chtot  : calcul le champ total (1) ou l'anomalie (0)
         tol    : tolérance du solveur
         maxit  : Nbre max d'itération du solveur
-        solver : solveur itératif du module scipy.sparse.linalg
+        solver : solveur itératif du module scipy.sparse.linalg,
+                 ou solveur direct 'superlu' ou 'pardiso' (voir resout)
         precon : si True, utilise un préconditionneur (factorisation LU incomplète)
 
         Retourne
@@ -174,12 +225,7 @@ class GrilleVF:
         if chtot == 1:
             q = f + g
             A = D.dot(M.dot(G))
-            if precon:
-                Mpre = sp.linalg.spilu(A.tocsc())
-                Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
-            else:
-                Mpre = None
-            phi, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
+            phi = resout(A, q, solver, tol, maxit, precon)
             B = M.dot(G.dot(phi))
         else:
             BB0 = np.hstack((B0[0]+np.zeros((self.nfx,)),
@@ -189,18 +235,8 @@ class GrilleVF:
             Mtmp =
             q =
             A =
-            if precon:
-                Mpre = sp.linalg.spilu(A.tocsc())
-                Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
-            else:
-                Mpre = None
-            phi_s, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
+            phi_s = resout(A, q, solver, tol, maxit, precon)
             B =
-
-        if info > 0:
-            print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:g}'.format(solver.__name__, info, tol))
-        elif info < 0:
-            print('{0:s}: illegal input or breakdown'.format(solver.__name__))
 
         Bx = B[:self.nfx]
         By = B[self.nfx:(self.nfx+self.nfy)]

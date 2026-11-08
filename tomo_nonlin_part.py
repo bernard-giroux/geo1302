@@ -72,7 +72,7 @@ zmin = 0.0
 xmax = 150.0
 zmax = 300.0
 nx = int((xmax-xmin)/dx+0.001)
-nz = int((zmax-xmin)/dz+0.001)
+nz = int((zmax-zmin)/dz+0.001)
 xg = np.linspace(xmin, xmax, nx+1)
 zg = np.linspace(zmin, zmax, nz+1)
 

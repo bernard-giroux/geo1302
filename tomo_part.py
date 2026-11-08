@@ -94,10 +94,11 @@ def kac(A, b, tolx, maxiter, dense=True):
     else:
         AT = A.T
         for i in range(m):
-            n2[i] = spl.norm(AT[:, i])**2
+            n2[i] = spl.norm(AT[:, [i]])**2
         while it <= maxiter:
             it += 1
             for i in range(m):
+                ai = AT[:, [i]].toarray()      # colonne (n, 1)
                 newx +=
             if np.linalg.norm(newx-x)/(1+np.linalg.norm(x)) < tolx:
                 return newx
@@ -227,7 +228,8 @@ def art(A, b, tolx, maxiter, dense=True):
         while it <= maxiter:
             it += 1
             for i in range(m):
-                q = A1P[:, i].T.dot(newx)
+                ai = A1P[:, [i]].toarray()     # colonne (n, 1)
+                q = ai.T.dot(newx)
                 delta =
                 newx +=
             if np.linalg.norm(newx-x)/(1+np.linalg.norm(x)) < tolx:
@@ -350,7 +352,8 @@ def sirt(A, b, tolx, maxiter, dense=True):
             N[i] = np.sum(A1[i, :])
             L[i] = np.sum(A[i, :])
         for i in range(n):
-            NRAYS[i] = np.sum(A1[:, 1])
+            NRAYS[i] = np.sum(A1[:, i])
+        inray = NRAYS[:, 0] != 0.0   # cellules traversées par au moins un rai
         while it <= maxiter:
             it += 1
             deltax = np.zeros((n, 1))
@@ -358,7 +361,7 @@ def sirt(A, b, tolx, maxiter, dense=True):
                 q = A1T[:, i].T.dot(newx)
                 delta =
                 deltax +=
-            newx += alpha*deltax/NRAYS
+            newx[inray] += alpha*deltax[inray]/NRAYS[inray]
             if np.linalg.norm(newx-x)/(1+np.linalg.norm(x)) < tolx:
                 return newx
             x = newx.copy()
@@ -369,15 +372,17 @@ def sirt(A, b, tolx, maxiter, dense=True):
             N[i] = np.sum(A1[i, :])
             L[i] = np.sum(A[i, :])
         for i in range(n):
-            NRAYS[i] = np.sum(A1[:, 1])
+            NRAYS[i] = np.sum(A1[:, i])
+        inray = NRAYS[:, 0] != 0.0   # cellules traversées par au moins un rai
         while it <= maxiter:
             it += 1
             deltax = np.zeros((n, 1))
             for i in range(m):
-                q = A1T[:, i].T.dot(newx)
+                ai = A1T[:, [i]].toarray()     # colonne (n, 1)
+                q = ai.T.dot(newx)
                 delta =
                 deltax +=
-            newx += alpha*deltax/NRAYS
+            newx[inray] += alpha*deltax[inray]/NRAYS[inray]
             if np.linalg.norm(newx-x)/(1+np.linalg.norm(x)) < tolx:
                 return newx
             x = newx.copy()
@@ -412,10 +417,10 @@ if __name__ == '__main__':
         for j in range(15-i):
             G[i+79, (i+1)*16+17*j] = np.sqrt(2.0)
 
-    G = sp.csc_matrix(G)
+    G = sp.csc_array(G)
 
     plt.figure()
-    plt.imshow(G.todense())
+    plt.imshow(G.toarray())
     plt.colorbar()
     plt.show(block=False)
 

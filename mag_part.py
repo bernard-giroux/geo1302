@@ -9,7 +9,7 @@ import math
 import warnings
 import scipy.sparse as sp
 from scipy.interpolate import interpn
-from scipy.sparse.linalg import bicgstab, spsolve
+from scipy.sparse.linalg import bicgstab, cg, spsolve
 import numpy as np
 
 try:
@@ -33,28 +33,43 @@ def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
     ----------
     A      : matrice creuse du système (n x n)
     q      : terme de droite (n)
-    solver : solveur itératif du module scipy.sparse.linalg (bicgstab, gmres, ...)
+    solver : solveur itératif du module scipy.sparse.linalg (bicgstab, cg, gmres, ...)
              ou solveur direct : 'superlu', 'pardiso' ou 'mumps'
     tol    : tolérance du solveur itératif
     maxit  : Nbre max d'itération du solveur itératif
-    precon : si True, utilise un préconditionneur (factorisation LU incomplète)
+    precon : préconditionneur du solveur itératif
+             False   : aucun
+             'ilu'   : factorisation LU incomplète (True est accepté)
+             'jacobi': inverse de la diagonale de A (symétrique, convient à cg)
 
     Retourne
     --------
-    x : array numpy (n)
+    x   : array numpy (n)
+    nit : nombre d'itérations effectuées (None pour un solveur direct)
     '''
     if callable(solver):
-        if precon:
-            Mpre = sp.linalg.spilu(A.tocsc())
-            Mpre = sp.linalg.LinearOperator(A.shape, Mpre.solve)
-        else:
+        if precon is True or precon == 'ilu':
+            ilu = sp.linalg.spilu(sp.csc_array(A))
+            Mpre = sp.linalg.LinearOperator(A.shape, ilu.solve)
+        elif precon == 'jacobi':
+            Mpre = sp.diags_array(1.0 / A.diagonal())
+        elif not precon:
             Mpre = None
-        x, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre)
+        else:
+            raise ValueError('Préconditionneur ' + str(precon) + ' non implémenté')
+
+        nit = 0
+        def compte(xk):
+            nonlocal nit
+            nit += 1
+        options = {'callback_type': 'pr_norm'} if solver.__name__ == 'gmres' else {}
+
+        x, info = solver(A, q, rtol=tol, maxiter=maxit, M=Mpre, callback=compte, **options)
         if info > 0:
             print('{0:}: convergence not achieved, stopped after {1:d} iterations for tol = {2:g}'.format(solver.__name__, info, tol))
         elif info < 0:
             print('{0:s}: illegal input or breakdown'.format(solver.__name__))
-        return x
+        return x, nit
 
     solver = solver.lower()
     if solver not in ('superlu', 'pardiso', 'mumps'):
@@ -68,10 +83,10 @@ def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
                       RuntimeWarning, stacklevel=3)
         solver = 'superlu'
     if solver == 'pardiso':
-        return pypardiso.spsolve(sp.csr_array(A), np.asarray(q, dtype=np.float64))
+        return pypardiso.spsolve(sp.csr_array(A), np.asarray(q, dtype=np.float64)), None
     if solver == 'mumps':
-        return resout_mumps(A, q)
-    return spsolve(sp.csc_array(A), q)
+        return resout_mumps(A, q), None
+    return spsolve(sp.csc_array(A), q), None
 
 
 def resout_mumps(A, q):
@@ -240,14 +255,16 @@ class GrilleVF:
         chtot  : calcul le champ total (1) ou l'anomalie (0)
         tol    : tolérance du solveur
         maxit  : Nbre max d'itération du solveur
-        solver : solveur itératif du module scipy.sparse.linalg,
+        solver : solveur itératif du module scipy.sparse.linalg (bicgstab, cg, ...),
                  ou solveur direct 'superlu', 'pardiso' ou 'mumps' (voir resout)
-        precon : si True, utilise un préconditionneur (factorisation LU incomplète)
+        precon : préconditionneur : False, 'ilu' ou 'jacobi' (voir resout)
 
         Retourne
         --------
         Bx, By, Bz  : arrays numpy
             valeurs du champ interpolé au points xo
+
+        Le nombre d'itérations du solveur est conservé dans self.nit
 
         '''
         B0 = np.array(B0)
@@ -265,7 +282,7 @@ class GrilleVF:
         if chtot == 1:
             q = f + g
             A = D.dot(M.dot(G))
-            phi = resout(A, q, solver, tol, maxit, precon)
+            phi, self.nit = resout(A, q, solver, tol, maxit, precon)
             B = M.dot(G.dot(phi))
         else:
             BB0 = np.hstack((B0[0]+np.zeros((self.nfx,)),
@@ -275,7 +292,7 @@ class GrilleVF:
             Mtmp =
             q =
             A =
-            phi_s = resout(A, q, solver, tol, maxit, precon)
+            phi_s, self.nit = resout(A, q, solver, tol, maxit, precon)
             B =
 
         Bx = B[:self.nfx]

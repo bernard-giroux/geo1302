@@ -139,6 +139,7 @@ class GrilleFDTD:
     def propage0(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
+        src.update_indices(self)
 
         tau_xx = np.zeros((self.nx, self.nz))
         tau_zz = np.zeros((self.nx, self.nz))
@@ -198,6 +199,7 @@ class GrilleFDTD:
     def propage(self, src, t, showPlot=False):
 
         nstep = 1 + int(t/self.dt)
+        src.update_indices(self)
 
         tau_xx = np.zeros((self.nx, self.nz))
         tau_zz = np.zeros((self.nx, self.nz))
@@ -242,17 +244,17 @@ class Source:
     """
     Classe mère pour les fonctions sources
     """
-    def __init__(self, i, j, A):
+    def __init__(self, x, z, A):
         """
         Constructeur
 
         Paramètres
-            i : indice du noeud selon x ou est appliquée la source
-            j : indice du noeud selon z ou est appliquée la source
+            x : coordonnée x où est appliquée la source
+            z : coordonnée z où est appliquée la source
             A : amplitude de la source
         """
-        self.i = i
-        self.j = j
+        self.x = x
+        self.z = z
         self.A = A
 
     def __call__(self, ind):
@@ -263,6 +265,21 @@ class Source:
             return self.A * self.f[ind]
         else:
             return 0.0
+
+    def update_indices(self, grille):
+        """
+        mise à jour des indices du noeud le plus près de la position (x, z)
+        pour une grille donnée
+
+        Paramètres
+        ----------
+        grille : GrilleFDTD
+            instance de la grille
+        """
+        dx = grille.x[1] - grille.x[0]
+        dz = grille.z[1] - grille.z[0]
+        self.i = int(round((self.x - grille.x[0])/dx))   # noeud le plus proche
+        self.j = int(round((self.z - grille.z[0])/dz))
 
     def plot(self):
         fig, ax = plt.subplots(ncols=2)
@@ -281,22 +298,22 @@ class Source:
 
 
 class Impulsion(Source):
-    def __init__(self, i, j, alpha, t0, dt, A=1.0):
-        Source.__init__(self, i, j, A)
+    def __init__(self, x, z, alpha, t0, dt, A=1.0):
+        Source.__init__(self, x, z, A)
         self.t = np.arange(0.0, 2.0*t0 + dt/3, dt)
         self.f = np.exp(-alpha * (self.t-t0)**2)
 
 
 class DeriveeImpulsion(Source):
-    def __init__(self, i, j, alpha, t0, dt, A=1.0):
-        Source.__init__(self, i, j, A)
+    def __init__(self, x, z, alpha, t0, dt, A=1.0):
+        Source.__init__(self, x, z, A)
         self.t = np.arange(0.0, 2.0*t0 + dt/3, dt)
         self.f = -2.0 * alpha * (self.t-t0) * np.exp(-alpha * (self.t-t0)**2)
 
 
 class Ricker(Source):
-    def __init__(self, i, j, fdom, dt, A=1.0):
-        Source.__init__(self, i, j, A)
+    def __init__(self, x, z, fdom, dt, A=1.0):
+        Source.__init__(self, x, z, A)
         self.t = np.arange(-1.0/fdom, 1.0/fdom + dt/3, dt)
         self.f =
 
@@ -387,7 +404,7 @@ if __name__ == '__main__':
 
         g.defProp(Vp, Vs, rho, dt)
 
-        src = Ricker(200, 150, 5, dt)
+        src = Ricker(200*dx, 150*dx, 5, dt)   # coordonnées (m) du noeud (200, 150)
 
         t = 0.25
 

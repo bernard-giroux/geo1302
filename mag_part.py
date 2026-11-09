@@ -18,6 +18,12 @@ try:
 except (ImportError, OSError):   # mkl_rt introuvable, p. ex. sous macOS
     has_pardiso = False
 
+try:
+    import mumps   # python-mumps (conda-forge) ou pymumps
+    has_mumps = hasattr(mumps, 'Context') or hasattr(mumps, 'DMumpsContext')
+except (ImportError, OSError):
+    has_mumps = False
+
 
 def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
     '''
@@ -28,7 +34,7 @@ def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
     A      : matrice creuse du système (n x n)
     q      : terme de droite (n)
     solver : solveur itératif du module scipy.sparse.linalg (bicgstab, gmres, ...)
-             ou solveur direct : 'superlu' ou 'pardiso'
+             ou solveur direct : 'superlu', 'pardiso' ou 'mumps'
     tol    : tolérance du solveur itératif
     maxit  : Nbre max d'itération du solveur itératif
     precon : si True, utilise un préconditionneur (factorisation LU incomplète)
@@ -51,15 +57,49 @@ def resout(A, q, solver=bicgstab, tol=1.e-8, maxit=1000, precon=False):
         return x
 
     solver = solver.lower()
-    if solver not in ('superlu', 'pardiso'):
+    if solver not in ('superlu', 'pardiso', 'mumps'):
         raise ValueError('Solveur ' + solver + ' non implémenté')
     if solver == 'pardiso' and not has_pardiso:
         warnings.warn('PARDISO (pypardiso) non disponible, SuperLU utilisé.',
                       RuntimeWarning, stacklevel=3)
         solver = 'superlu'
+    if solver == 'mumps' and not has_mumps:
+        warnings.warn('MUMPS (python-mumps ou pymumps) non disponible, SuperLU utilisé.',
+                      RuntimeWarning, stacklevel=3)
+        solver = 'superlu'
     if solver == 'pardiso':
         return pypardiso.spsolve(sp.csr_array(A), np.asarray(q, dtype=np.float64))
+    if solver == 'mumps':
+        return resout_mumps(A, q)
     return spsolve(sp.csc_array(A), q)
+
+
+def resout_mumps(A, q):
+    '''
+    Solutionne A x = q avec MUMPS, via python-mumps ou pymumps.
+
+    python-mumps : conda install -c conda-forge python-mumps
+                   (Windows, macOS et Linux)
+    pymumps      : conda install -c conda-forge pymumps
+                   (Windows, Linux et macOS Intel)
+    '''
+    A = sp.coo_array(A)
+    b = np.asarray(q, dtype=np.float64).flatten()
+    if hasattr(mumps, 'Context'):              # python-mumps
+        ctx = mumps.Context()
+        ctx.factor(A)
+        return ctx.solve(b)
+    ctx = mumps.DMumpsContext(sym=0, par=1)    # pymumps
+    try:
+        ctx.set_icntl(4, 1)                    # messages d'erreur seulement
+        ctx.set_shape(A.shape[0])
+        ctx.set_centralized_sparse(A)
+        x = b.copy()
+        ctx.set_rhs(x)
+        ctx.run(job=6)                         # analyse, factorisation et résolution
+    finally:
+        ctx.destroy()
+    return x
 
 
 class GrilleVF:
@@ -201,7 +241,7 @@ class GrilleVF:
         tol    : tolérance du solveur
         maxit  : Nbre max d'itération du solveur
         solver : solveur itératif du module scipy.sparse.linalg,
-                 ou solveur direct 'superlu' ou 'pardiso' (voir resout)
+                 ou solveur direct 'superlu', 'pardiso' ou 'mumps' (voir resout)
         precon : si True, utilise un préconditionneur (factorisation LU incomplète)
 
         Retourne

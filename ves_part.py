@@ -148,15 +148,13 @@ class Sondage:
             self.mod(m, self.rhoam)
 
             e1 =
-            e1 = e1.reshape(-1, 1)
-            misfit1 = e1.T.dot(e1)
+            misfit1 = e1 @ e1
             if misfit1 < kr:
                 return m
             J = self._jacobian(m)
             U, s, Vh = np.linalg.svd(J, full_matrices=False)
             V = Vh.T
             l = 0
-            k = 1
             S = np.eye(s.size)
             while l < s.size:
                 beta =
@@ -168,11 +166,10 @@ class Sondage:
                 mg =
                 self.mod(mg, self.rhoam)
                 e2 =
-                misfit2 = e2.T.dot(e2)
+                misfit2 = e2 @ e2
                 if misfit2 > misfit1:
                     l += 1
-                    k += 1
-                    if k == s.size:
+                    if l == s.size:  # aucun beta ne réduit l'erreur
                         return m
                 else:
                     l = s.size+1

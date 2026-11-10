@@ -86,18 +86,27 @@ class Sondage:
             rhoa[ns] = (rhoa[ns] + 336.0*self.a[22] + 225.0*self.a[24])/10000.0
         return rhoa
 
-    def _jacobian(self, m):
-        par = 0.1
-        m2 = m.copy()
-        rhoa2 = np.empty((self.ab2.size, ))
-        A = np.empty((self.ab2.size, m.size))
-        for i2 in np.arange(m.size):
-            m2[i2] = (m[i2]*par)+m[i2]
-            rhoa2 = self.mod(m2)
-            # les termes de la jacobienne sont normalisés
-            A[:, i2] = ((rhoa2-self.rhoam)/(m[i2]*par))*m[i2]/self.rhoa
-            m2[:] = m[:]
+    def _jacobian(self, m, rhoam):
+        """
+        Jacobienne log-log, calculée par différences finies avant
 
+        Parameters
+        ----------
+        m : modèle courant
+        rhoam : résistivités apparentes prédites pour m
+
+        Returns
+        -------
+        A : array numpy N x M, A[i, j] ≈ d ln(rhoa_i) / d ln(m_j)
+        """
+        par = 0.1  # perturbation relative de chaque paramètre
+        log_rhoam = np.log(rhoam)
+        A = np.empty((self.ab2.size, m.size))
+        m2 = m.copy()
+        for j in range(m.size):
+            m2[j] = m[j]*(1.0+par)
+            A[:, j] = (np.log(self.mod(m2)) - log_rhoam)/np.log(1.0+par)
+            m2[j] = m[j]
         return A
 
     def inv(self, m0, maxit=100, eps=1.e-8, showfig=False):
@@ -151,7 +160,7 @@ class Sondage:
             misfit1 = e1 @ e1
             if misfit1 < kr:
                 return m
-            J = self._jacobian(m)
+            J = self._jacobian(m, self.rhoam)
             U, s, Vh = np.linalg.svd(J, full_matrices=False)
             V = Vh.T
             l = 0
